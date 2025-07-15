@@ -1,4 +1,4 @@
-package com.rentalapp;
+package com.rentalapp.auth;
 
 abstract class User {
     protected String username;
