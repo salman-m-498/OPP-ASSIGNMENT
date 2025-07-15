@@ -89,28 +89,20 @@ The application provides the following menu structure:
 
 ### Git Workflow
 
-1. **Branch Strategy:**
-   ```bash
-   # Create feature branches for each module
-   git checkout -b feature/vehicle-management
-   git checkout -b feature/rental-system
-   git checkout -b feature/user-authentication
-   ```
-
-2. **Before Starting Work:**
+1. **Before Starting Work:**
    ```bash
    git pull origin main
    git checkout -b feature/your-feature-name
    ```
 
-3. **After Completing Work:**
+2. **After Completing Work:**
    ```bash
    git add .
    git commit -m "Add: brief description of changes"
    git push origin feature/your-feature-name
    ```
 
-4. **Create Pull Request:**
+3. **Create Pull Request:**
    - Go to repository on GitHub
    - Create Pull Request from your feature branch to main
    - Request team review before merging
