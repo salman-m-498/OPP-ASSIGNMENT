@@ -1,6 +1,8 @@
 package com.rentalapp;
 
 import java.util.Scanner;
+import com.rentalapp.vehicle.VehicleManager;
+
 
 /**
  * App class - Handles all menu operations and user interactions
@@ -9,11 +11,13 @@ public class App {
     private Scanner scanner;
     private boolean running;
     private Object currentUser; // Using Object temporarily until User classes are properly defined
-    
+    private VehicleManager vehicleManager;
+
     public App() {
         this.scanner = new Scanner(System.in);
         this.running = true;
         this.currentUser = null;
+        this.vehicleManager = new VehicleManager();
     }
     
     /**
@@ -297,7 +301,42 @@ public class App {
     
     // Customer Rental Menu Handlers
     private void handleBrowseVehicles() {
-        System.out.println("Browse vehicles functionality to be implemented...");
+        System.out.println("\n=== BROWSE VEHICLES ===");
+        System.out.println("1. Show All Available Vehicles");
+        System.out.println("2. Filter by Category (Economy/Luxury)");
+        System.out.println("3. Filter by Type (SUV, Sedan, etc.)");
+        System.out.println("4. Filter by Minimum Seat Count");
+        System.out.println("5. Back");
+        System.out.print("Choose option: ");
+
+        int option = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (option) {
+        case 1:
+            vehicleManager.displayVehicles(vehicleManager.getAvailableVehicles());
+            break;
+        case 2:
+            System.out.print("Enter category (Economy/Luxury): ");
+            String cat = scanner.nextLine();
+            vehicleManager.displayVehicles(vehicleManager.getVehiclesByCategory(cat));
+            break;
+        case 3:
+            System.out.print("Enter type (SUV, Sedan, etc.): ");
+            String type = scanner.nextLine();
+            vehicleManager.displayVehicles(vehicleManager.getVehiclesByType(type));
+            break;
+        case 4:
+            System.out.print("Enter minimum number of seats: ");
+            int seats = scanner.nextInt();
+            scanner.nextLine();
+            vehicleManager.displayVehicles(vehicleManager.getVehiclesBySeats(seats));
+            break;
+        case 5:
+            return;
+        default:
+            System.out.println("Invalid option.");
+    }
     }
     
     private void handleRentVehicle() {
