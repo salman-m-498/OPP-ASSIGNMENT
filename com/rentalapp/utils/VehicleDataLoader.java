@@ -4,8 +4,8 @@ import com.rentalapp.vehicle.*;
 import java.util.*;
 
 public class VehicleDataLoader {
-     private static final String ECONOMY_FILE = "data/economy_vehicles.csv";
-    private static final String LUXURY_FILE = "data/luxury_vehicles.csv";
+    private static final String ECONOMY_FILE = "com/rentalapp/data/economy_vehicles.csv";
+    private static final String LUXURY_FILE = "com/rentalapp/data/luxury_vehicles.csv";
 
      public static List<Vehicle> loadAllVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
