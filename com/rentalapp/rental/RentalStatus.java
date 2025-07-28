@@ -2,7 +2,7 @@ package com.rentalapp.rental;
 
 public enum RentalStatus {
     ACTIVE,
-    COMPLETED,
+    RETURNED,
     EXTENDED,
     CANCELLED,
     OVERDUE

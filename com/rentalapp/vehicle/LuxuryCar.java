@@ -15,7 +15,7 @@ public class LuxuryCar extends Vehicle {
         double baseCost = dailyRate * days;
         double luxurySurcharge = baseCost * LUXURY_SURCHARGE;
         return baseCost + luxurySurcharge;
-    }
+    } 
 
     @Override
     public String getVehicleDetails() {
