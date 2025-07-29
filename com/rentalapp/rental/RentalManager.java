@@ -3,6 +3,7 @@ package com.rentalapp.rental;
 import com.rentalapp.vehicle.VehicleManager;
 import com.rentalapp.auth.Customer;
 import com.rentalapp.payment.PaymentManager;
+import com.rentalapp.payment.Receipt;
 import com.rentalapp.loyalty.LoyaltyPointManager;
 
 import java.time.LocalDate;
@@ -63,7 +64,7 @@ public class RentalManager {
         }
 
         // Process payment
-        var receipt = paymentManager.processPayment(rental, customer, paymentMethod);
+        Receipt receipt = paymentManager.processPayment(rental, customer, paymentMethod);
         
         if (receipt != null) {
             // Add to rental history
@@ -117,7 +118,7 @@ public class RentalManager {
         
         if (extended) {
             // Process payment for extension
-            var receipt = paymentManager.processPayment(rental, customer, paymentMethod);
+            Receipt receipt = paymentManager.processPayment(rental, customer, paymentMethod);
             
             if (receipt != null) {
                 System.out.println("Rental extended and payment processed successfully!");
