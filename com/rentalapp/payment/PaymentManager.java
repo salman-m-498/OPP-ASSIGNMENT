@@ -189,7 +189,7 @@ public class PaymentManager {
         // Simulate refund processing
         System.out.println("Processing refund of RM " + String.format("%.2f", amount) + "...");
         
-        // Assume refunds always succeed
+        // always succeed
         return true;
     }
 

@@ -9,13 +9,6 @@ public class EconomyCar extends Vehicle {
               dailyRate, fuelType, transmissionType, available);
     }
     
-     @Override
-    public double calculateRentalCost(int days) {
-        double baseCost = dailyRate * days;
-        // Economy cars have no additional charges
-        return baseCost;
-    }
-
     @Override
     public String getVehicleDetails() {
         return String.format("Economy Vehicle - %s %s\nSeats: %d | Doors: %d | Baggage: %s\n" +

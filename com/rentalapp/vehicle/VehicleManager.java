@@ -64,6 +64,7 @@ public class VehicleManager {
         Vehicle vehicle = getVehicleById(vehicleId);
         if (vehicle != null && !vehicle.isAvailable()) {
             vehicle.setAvailable(true);
+            vehicle.incrementRentalCount();  
             return true;
         }
         return false;

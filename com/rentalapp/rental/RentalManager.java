@@ -5,6 +5,7 @@ import com.rentalapp.auth.Customer;
 import com.rentalapp.payment.PaymentManager;
 import com.rentalapp.payment.Receipt;
 import com.rentalapp.loyalty.LoyaltyPointManager;
+import com.rentalapp.maintenance.MaintenanceManager;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -16,11 +17,13 @@ public class RentalManager {
     private LoyaltyPointManager loyaltyPointManager;
     private VehicleManager vehicleManager;
     private Map<String, Customer> customerDatabase;
+    private MaintenanceManager maintenanceManager;
+
 
     public RentalManager(VehicleManager vehicleManager, LoyaltyPointManager loyaltyPointManager) {
         this.vehicleManager = vehicleManager;
         this.loyaltyPointManager = loyaltyPointManager;
-        this.rentalService = new RentalService(vehicleManager);
+        this.rentalService = new RentalService(vehicleManager,maintenanceManager);
         this.paymentManager = new PaymentManager(loyaltyPointManager);
         this.rentalHistory = new RentalHistory();
         this.customerDatabase = new HashMap<>();

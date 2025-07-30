@@ -134,7 +134,6 @@ public class LoyaltyPointManager {
         System.out.println("Customer: " + account.getCustomerName());
         System.out.println("Customer ID: " + customerId);
         System.out.println("Current Points: " + account.getCurrentPoints());
-        System.out.println("Lifetime Points: " + account.getLifetimePoints());
         System.out.println("Member Status: " + (account.isVipMember() ? "VIP MEMBER" : "STANDARD MEMBER"));
         System.out.println("Account Created: " + account.getAccountCreatedDate().toLocalDate());
         
@@ -178,7 +177,6 @@ public class LoyaltyPointManager {
                              account.getCustomerId(),
                              account.getCustomerName(),
                              account.getCurrentPoints(),
-                             account.getLifetimePoints(),
                              account.isVipMember() ? "VIP" : "STANDARD");
         }
         System.out.println("===============================================================\n");
@@ -197,19 +195,16 @@ public class LoyaltyPointManager {
         int totalMembers = loyaltyAccounts.size();
         int vipMembers = 0;
         int totalPoints = 0;
-        int totalLifetimePoints = 0;
         
         for (LoyaltyAccount account : loyaltyAccounts.values()) {
             if (account.isVipMember()) vipMembers++;
             totalPoints += account.getCurrentPoints();
-            totalLifetimePoints += account.getLifetimePoints();
         }
         
         stats.put("TOTAL_MEMBERS", totalMembers);
         stats.put("VIP_MEMBERS", vipMembers);
         stats.put("STANDARD_MEMBERS", totalMembers - vipMembers);
         stats.put("TOTAL_POINTS_CIRCULATING", totalPoints);
-        stats.put("TOTAL_LIFETIME_POINTS", totalLifetimePoints);
         stats.put("AVERAGE_POINTS_PER_MEMBER", totalMembers > 0 ? totalPoints / totalMembers : 0);
         
         return stats;
@@ -229,7 +224,6 @@ public class LoyaltyPointManager {
         }
         
         System.out.println("Total Points in Circulation: " + stats.get("TOTAL_POINTS_CIRCULATING"));
-        System.out.println("Total Lifetime Points Earned: " + stats.get("TOTAL_LIFETIME_POINTS"));
         System.out.println("Average Points per Member: " + stats.get("AVERAGE_POINTS_PER_MEMBER"));
         
         // Transaction type breakdown
@@ -307,18 +301,10 @@ public class LoyaltyPointManager {
     }
 
     public void expirePoints(String customerId, int daysOld) {
-        // In a real system, you would have point expiration logic
-        // This is a simplified version
         LoyaltyAccount account = loyaltyAccounts.get(customerId);
         if (account != null) {
             // Example: expire points older than specified days
             System.out.println("Point expiration check for " + account.getCustomerName());
-        }
-    }
-
-    public void bulkPointsUpdate(Map<String, Integer> pointsToAdd) {
-        for (Map.Entry<String, Integer> entry : pointsToAdd.entrySet()) {
-            addPoints(entry.getKey(), entry.getValue(), "BULK_UPDATE", "Bulk points addition");
         }
     }
 

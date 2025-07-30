@@ -101,22 +101,7 @@ public class PaymentSummary {
             System.out.println("\nPayment Statistics:");
             System.out.println("Highest Payment: RM " + String.format("%.2f", maxPayment));
             System.out.println("Lowest Payment: RM " + String.format("%.2f", minPayment));
-            System.out.println("Standard Deviation: RM " + String.format("%.2f", calculateStandardDeviation()));
         }
-    }
-
-    private double calculateStandardDeviation() {
-        if (paymentHistory.size() < 2) return 0.0;
-        
-        double sum = paymentHistory.stream().mapToDouble(Double::doubleValue).sum();
-        double mean = sum / paymentHistory.size();
-        
-        double variance = paymentHistory.stream()
-            .mapToDouble(payment -> Math.pow(payment - mean, 2))
-            .average()
-            .orElse(0.0);
-        
-        return Math.sqrt(variance);
     }
 
     public String getSpendingTier() {
@@ -133,14 +118,6 @@ public class PaymentSummary {
 
     public boolean isHighValueCustomer() {
         return totalSpent >= 2000 || totalRentals >= 10;
-    }
-
-    public double getMonthlyAverageSpending() {
-        if (lastPaymentDate == null || totalRentals == 0) return 0.0;
-        
-        // Approximate calculation based on total spending and time since first rental
-        // This is simplified - in a real system, you'd track actual dates
-        return totalSpent / Math.max(1, totalRentals); // Simplified calculation
     }
 
     // Getters

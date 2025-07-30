@@ -6,7 +6,6 @@ public class LoyaltyAccount {
     private String customerId;
     private String customerName;
     private int currentPoints;
-    private int lifetimePoints;
     private boolean vipMember;
     private LocalDateTime accountCreatedDate;
     private LocalDateTime lastPointsEarned;
@@ -17,7 +16,6 @@ public class LoyaltyAccount {
         this.customerId = customerId;
         this.customerName = customerName;
         this.currentPoints = 0;
-        this.lifetimePoints = 0;
         this.vipMember = false;
         this.accountCreatedDate = LocalDateTime.now();
         this.totalRentals = 0;
@@ -26,7 +24,6 @@ public class LoyaltyAccount {
     public void addPoints(int points) {
         if (points > 0) {
             this.currentPoints += points;
-            this.lifetimePoints += points;
             this.lastPointsEarned = LocalDateTime.now();
         }
     }
@@ -50,43 +47,25 @@ public class LoyaltyAccount {
         this.totalRentals++;
     }
 
-    public String getMembershipTier() {
-        if (vipMember) {
-            return "VIP";
-        } else if (lifetimePoints >= 250) {
-            return "SILVER";
-        } else if (lifetimePoints >= 100) {
-            return "BRONZE";
-        } else {
-            return "STANDARD";
-        }
-    }
-
     public boolean canUpgradeToVip() {
         return !vipMember && (currentPoints >= 500 || totalRentals >= 5);
     }
 
-    public int getPointsToNextTier() {
+    public int getPointsToVip() {
         if (vipMember) {
-            return 0; // Already at top tier
+            return 0; // Already vip
         } else if (currentPoints < 500) {
             return 500 - currentPoints;
         }
         return 0;
     }
 
-    public double getPointsEarningRate() {
-        if (totalRentals == 0) return 0.0;
-        return (double) lifetimePoints / totalRentals;
-    }
 
     public void printAccountSummary() {
         System.out.println("\n================ LOYALTY ACCOUNT SUMMARY ================");
         System.out.println("Customer: " + customerName);
         System.out.println("Customer ID: " + customerId);
         System.out.println("Current Points: " + currentPoints);
-        System.out.println("Lifetime Points: " + lifetimePoints);
-        System.out.println("Membership Tier: " + getMembershipTier());
         System.out.println("Total Rentals: " + totalRentals);
         System.out.println("Account Created: " + accountCreatedDate.toLocalDate());
         
@@ -99,10 +78,9 @@ public class LoyaltyAccount {
         }
         
         if (!vipMember) {
-            System.out.println("Points to VIP: " + getPointsToNextTier());
+            System.out.println("Points to VIP: " + getPointsToVip());
         }
         
-        System.out.println("Points Earning Rate: " + String.format("%.1f", getPointsEarningRate()) + " pts/rental");
         System.out.println("=========================================================\n");
     }
 
@@ -110,7 +88,6 @@ public class LoyaltyAccount {
     public String getCustomerId() { return customerId; }
     public String getCustomerName() { return customerName; }
     public int getCurrentPoints() { return currentPoints; }
-    public int getLifetimePoints() { return lifetimePoints; }
     public boolean isVipMember() { return vipMember; }
     public LocalDateTime getAccountCreatedDate() { return accountCreatedDate; }
     public LocalDateTime getLastPointsEarned() { return lastPointsEarned; }
@@ -121,7 +98,6 @@ public class LoyaltyAccount {
     public void setCustomerId(String customerId) { this.customerId = customerId; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public void setCurrentPoints(int currentPoints) { this.currentPoints = currentPoints; }
-    public void setLifetimePoints(int lifetimePoints) { this.lifetimePoints = lifetimePoints; }
     public void setVipMember(boolean vipMember) { this.vipMember = vipMember; }
     public void setTotalRentals(int totalRentals) { this.totalRentals = totalRentals; }
 
@@ -131,7 +107,6 @@ public class LoyaltyAccount {
                 "customerId='" + customerId + '\'' +
                 ", customerName='" + customerName + '\'' +
                 ", currentPoints=" + currentPoints +
-                ", lifetimePoints=" + lifetimePoints +
                 ", vipMember=" + vipMember +
                 ", totalRentals=" + totalRentals +
                 '}';

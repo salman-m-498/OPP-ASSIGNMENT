@@ -12,6 +12,7 @@ public abstract class Vehicle {
     protected String fuelType;
     protected String transmissionType;
     protected boolean available;
+    protected int rentalCount = 0;
 
     public Vehicle(String id, String category, String type, String model, 
                    int seats, int doors, String baggageCapacity, double dailyRate,
@@ -62,6 +63,10 @@ public abstract class Vehicle {
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
 
+    public int getRentalCount() {return rentalCount;}
+    public void incrementRentalCount() {this.rentalCount++;}
+    public void resetRentalCount() {this.rentalCount = 0;}
+
     @Override
     public String toString() {
         return String.format("ID: %s | %s %s | %d seats | RM%.2f/day | %s | %s | %s",
@@ -69,6 +74,5 @@ public abstract class Vehicle {
                 available ? "Available" : "Rented");
     }
 
-    public abstract double calculateRentalCost(int days);
     public abstract String getVehicleDetails();
 }

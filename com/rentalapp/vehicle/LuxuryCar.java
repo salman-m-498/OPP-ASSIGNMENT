@@ -1,7 +1,6 @@
 package com.rentalapp.vehicle;
 
 public class LuxuryCar extends Vehicle {
-    private static final double LUXURY_SURCHARGE = 0.1; // 10% surcharge
     
     public LuxuryCar(String id, String category, String type, String model, 
                      int seats, int doors, String baggageCapacity, double dailyRate,
@@ -10,12 +9,6 @@ public class LuxuryCar extends Vehicle {
               dailyRate, fuelType, transmissionType, available);
     }
 
-     @Override
-    public double calculateRentalCost(int days) {
-        double baseCost = dailyRate * days;
-        double luxurySurcharge = baseCost * LUXURY_SURCHARGE;
-        return baseCost + luxurySurcharge;
-    } 
 
     @Override
     public String getVehicleDetails() {

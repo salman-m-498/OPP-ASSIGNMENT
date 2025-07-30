@@ -2,16 +2,22 @@ package com.rentalapp.rental;
 
 import com.rentalapp.vehicle.*;
 import com.rentalapp.auth.Customer;
+import com.rentalapp.maintenance.MaintenanceManager;
+import com.rentalapp.maintenance.MaintenanceType;
+import com.rentalapp.payment.PaymentCalculator;
+
 import java.time.LocalDate;
 import java.util.*;
 
 public class RentalService {
     private VehicleManager vehicleManager;
+    private MaintenanceManager maintenanceManager;
     private List<RentalRecord> activeRentals;
     private int rentalIdCounter;
     
-    public RentalService(VehicleManager vehicleManager) {
+    public RentalService(VehicleManager vehicleManager, MaintenanceManager maintenanceManager) {
         this.vehicleManager = vehicleManager;
+        this.maintenanceManager = maintenanceManager;
         this.activeRentals = new ArrayList<>();
         this.rentalIdCounter = 1000;
     }
@@ -29,23 +35,25 @@ public class RentalService {
             return null;
         }
         
-        // Calculate total cost
-        double totalCost = vehicle.calculateRentalCost(request.getRentalDays());
-        
-        // Create rental record
-        String rentalId = "R" + (++rentalIdCounter);
-        RentalRecord rental = new RentalRecord(
-            rentalId,
-            customer.getUserId(),
-            request.getVehicleId(),
-            request.getPickupLocation(),
-            request.getPickupDate(),
-            request.getReturnDate(),
-            request.getRentalDays(),
-            totalCost,
-            vehicle.getModel(),
-            customer.getName()
-        );
+       // Create rental record 
+    String rentalId = "R" + (++rentalIdCounter);
+    RentalRecord rental = new RentalRecord(
+        rentalId,
+        customer.getUserId(),
+        request.getVehicleId(),
+        request.getPickupLocation(),
+        request.getPickupDate(),
+        request.getReturnDate(),
+        request.getRentalDays(),
+        0.0, // temporary cost 
+        vehicle.getModel(),
+        customer.getName()
+    );
+
+       //Calculate total cost 
+       PaymentCalculator calculator = new PaymentCalculator();
+       double totalCost = calculator.calculateBaseAmount(rental);
+       rental.setTotalCost(totalCost);
         
         // Mark vehicle as rented
         if (vehicleManager.rentVehicle(request.getVehicleId())) {
@@ -64,12 +72,17 @@ public class RentalService {
             return false;
         }
 
-        // Mark vehicle as available again
+            // Mark vehicle as available again
         if (vehicleManager.returnVehicle(rental.getVehicleId())) {
             // Update rental record status
             rental.setReturnDate(LocalDate.now());
             rental.setStatus(RentalStatus.RETURNED);
             
+            Vehicle vehicle = vehicleManager.getVehicleById(rental.getVehicleId());
+            if (vehicle != null) {
+            vehicle.incrementRentalCount();
+            checkAndScheduleMaintenance(vehicle); // Trigger maintenance if needed
+            }
             // Remove from active rentals
             activeRentals.remove(rental);
             
@@ -98,7 +111,8 @@ public class RentalService {
         }
 
         // Calculate additional cost
-        double additionalCost = vehicle.calculateRentalCost(additionalDays);
+         PaymentCalculator calculator = new PaymentCalculator();
+        double additionalCost = calculator.calculateExtensionCost(rental.getVehicleModel(),additionalDays);
         
         // Update rental record
         rental.setRentalDays(rental.getRentalDays() + additionalDays);
@@ -226,6 +240,24 @@ public class RentalService {
         }
         return null;
     }
+
+    private void checkAndScheduleMaintenance(Vehicle vehicle) {
+    int threshold = vehicle.getCategory().equalsIgnoreCase("Economy") ? 20 : 10;
+
+    if (vehicle.getRentalCount() >= threshold) {
+        vehicle.setAvailable(false);  // Set status as unavailable for maintenance
+        vehicle.resetRentalCount();   // Reset rental count
+        maintenanceManager.scheduleMaintenance(
+            vehicle.getId(),
+            vehicle.getModel(),
+            MaintenanceType.GENERAL_INSPECTION,
+            LocalDate.now().plusDays(1),  // Schedule for tomorrow
+            "Auto-scheduled after " + threshold + " rentals."
+        );
+        System.out.println("Vehicle " + vehicle.getId() + " auto-flagged for maintenance.");
+    }
+}
+
 
     private boolean validateRentalRequest(RentalRequest request) {
         if (request == null) {
