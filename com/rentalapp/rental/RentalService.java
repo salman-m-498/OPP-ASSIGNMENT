@@ -39,7 +39,7 @@ public class RentalService {
     String rentalId = "R" + (++rentalIdCounter);
     RentalRecord rental = new RentalRecord(
         rentalId,
-        customer.getUserId(),
+        customer.getCustomerId(),
         request.getVehicleId(),
         request.getPickupLocation(),
         request.getPickupDate(),

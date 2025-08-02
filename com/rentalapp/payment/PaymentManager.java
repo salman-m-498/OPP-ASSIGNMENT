@@ -35,7 +35,7 @@ public class PaymentManager {
         Receipt receipt = new Receipt(
             receiptId,
             rental.getRentalId(),
-            customer.getUserId(),
+            customer.getCustomerId(),
             customer.getName(),
             rental.getVehicleModel(),
             rental.getRentalDays(),
@@ -50,13 +50,13 @@ public class PaymentManager {
         // Process payment (simulate payment gateway)
         if (processPaymentGateway(finalAmount, paymentMethod)) {
             // Add loyalty points to customer
-            loyaltyPointManager.addPoints(customer.getUserId(), loyaltyPointsEarned);
+            loyaltyPointManager.addPoints(customer.getCustomerId(), loyaltyPointsEarned);
             
             // Store receipt
             receipts.add(receipt);
             
             // Update payment summary for customer
-            updatePaymentSummary(customer.getUserId(), finalAmount, loyaltyPointsEarned);
+            updatePaymentSummary(customer.getCustomerId(), finalAmount, loyaltyPointsEarned);
             
             System.out.println("Payment processed successfully!");
             System.out.println("Receipt ID: " + receiptId);
@@ -218,6 +218,77 @@ public class PaymentManager {
             System.out.println("- " + entry.getKey() + ": " + entry.getValue() + " transactions");
         }
         System.out.println("===============================================================\n");
+    }
+    
+    /**
+     * Process late fee payment
+     */
+    public Receipt processLateFeePayment(Customer customer, double lateFee) {
+        // Create a special receipt for late fee
+        String receiptId = "LATE" + (++receiptCounter);
+        Receipt lateFeeReceipt = new Receipt(
+            receiptId,
+            "LATE_FEE",  // No specific rental ID for late fees
+            customer.getCustomerId(),
+            customer.getName(),
+            "Late Fee Payment",
+            0, // no rental days
+            lateFee,
+            0, // no discount for late fees
+            lateFee,
+            "Credit Card", // Default payment method
+            LocalDateTime.now(),
+            0 // no loyalty points for late fees
+        );
+        
+        // Process payment
+        if (processPaymentGateway(lateFee, "Credit Card")) {
+            receipts.add(lateFeeReceipt);
+            System.out.println("Late fee payment processed successfully!");
+            System.out.println("Late Fee: RM " + String.format("%.2f", lateFee));
+            return lateFeeReceipt;
+        } else {
+            System.out.println("Late fee payment failed. Please try again.");
+            return null;
+        }
+    }
+    
+    /**
+     * Process extension payment
+     */
+    public Receipt processExtensionPayment(Customer customer, double extensionCost) {
+        // Create a special receipt for extension
+        String receiptId = "EXT" + (++receiptCounter);
+        Receipt extensionReceipt = new Receipt(
+            receiptId,
+            "EXTENSION",  // Extension payment
+            customer.getCustomerId(),
+            customer.getName(),
+            "Rental Extension",
+            0, // no rental days
+            extensionCost,
+            0, // no discount for extensions
+            extensionCost,
+            "Credit Card", // Default payment method
+            LocalDateTime.now(),
+            (int) (extensionCost / 10) // 1 point per RM10 spent
+        );
+        
+        // Process payment
+        if (processPaymentGateway(extensionCost, "Credit Card")) {
+            receipts.add(extensionReceipt);
+            
+            // Add loyalty points for extension
+            loyaltyPointManager.addPoints(customer.getCustomerId(), extensionReceipt.getLoyaltyPointsEarned());
+            
+            System.out.println("Extension payment processed successfully!");
+            System.out.println("Extension Cost: RM " + String.format("%.2f", extensionCost));
+            System.out.println("Loyalty Points Earned: " + extensionReceipt.getLoyaltyPointsEarned());
+            return extensionReceipt;
+        } else {
+            System.out.println("Extension payment failed. Please try again.");
+            return null;
+        }
     }
 
 }

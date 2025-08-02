@@ -65,7 +65,14 @@ public class PaymentCalculator {
         }
         
         String vehicleCategory = vehiclePrice.getCategory();
-        boolean isVip = customer.isVipMember();
+        boolean isVip = false;
+        
+        // Check if customer is VIP (Gold or Platinum member)
+        if (customer instanceof com.rentalapp.auth.MemberCustomer) {
+            com.rentalapp.auth.MemberCustomer memberCustomer = (com.rentalapp.auth.MemberCustomer) customer;
+            String tier = memberCustomer.getMembershipTier();
+            isVip = "Gold".equals(tier) || "Platinum".equals(tier);
+        }
         
         double discountRate = 0.0;
         

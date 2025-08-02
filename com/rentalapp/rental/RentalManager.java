@@ -254,10 +254,10 @@ public class RentalManager {
     }
 
     public void addCustomer(Customer customer) {
-        customerDatabase.put(customer.getUserId(), customer);
+        customerDatabase.put(customer.getCustomerId(), customer);
         
         // Create loyalty account for new customer
-        loyaltyPointManager.createLoyaltyAccount(customer.getUserId(), customer.getName());
+        loyaltyPointManager.createLoyaltyAccount(customer.getCustomerId(), customer.getName());
     }
 
     public Customer getCustomer(String customerId) {
@@ -272,13 +272,20 @@ public class RentalManager {
         }
 
         System.out.println("\n================ CUSTOMER DETAILS ================");
-        System.out.println("Customer ID: " + customer.getUserId());
+        System.out.println("Customer ID: " + customer.getCustomerId());
         System.out.println("Name: " + customer.getName());
         System.out.println("Email: " + customer.getEmail());
         System.out.println("Member: " + (customer.isMember() ? "Yes" : "No"));
         
         if (customer.isMember()) {
-            System.out.println("VIP Member: " + (customer.isVipMember() ? "Yes" : "No"));
+            // Check if customer is VIP (Gold or Platinum member)
+            boolean isVip = false;
+            if (customer instanceof com.rentalapp.auth.MemberCustomer) {
+                com.rentalapp.auth.MemberCustomer memberCustomer = (com.rentalapp.auth.MemberCustomer) customer;
+                String tier = memberCustomer.getMembershipTier();
+                isVip = "Gold".equals(tier) || "Platinum".equals(tier);
+            }
+            System.out.println("VIP Member: " + (isVip ? "Yes" : "No"));
         }
         
         // Show rental statistics

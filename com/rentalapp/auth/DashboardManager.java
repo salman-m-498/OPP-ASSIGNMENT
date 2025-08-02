@@ -1,13 +1,33 @@
 package com.rentalapp.auth;
 
+import com.rentalapp.rental.RentalController;
+import com.rentalapp.rental.RentalService;
+import com.rentalapp.payment.PaymentManager;
+import com.rentalapp.vehicle.VehicleManager;
+import com.rentalapp.maintenance.MaintenanceManager;
+import com.rentalapp.loyalty.LoyaltyPointManager;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class DashboardManager {
     private Scanner scanner;
+    private RentalController rentalController;
+    private VehicleManager vehicleManager;
+    private PaymentManager paymentManager;
+    private RentalService rentalService;
     
     public DashboardManager() {
         this.scanner = new Scanner(System.in);
+        
+        // Initialize managers
+        this.vehicleManager = new VehicleManager();
+        LoyaltyPointManager loyaltyPointManager = new LoyaltyPointManager();
+        this.paymentManager = new PaymentManager(loyaltyPointManager);
+        MaintenanceManager maintenanceManager = new MaintenanceManager();
+        this.rentalService = new RentalService(vehicleManager, maintenanceManager);
+        
+        // Initialize rental controller
+        this.rentalController = new RentalController(scanner, rentalService, paymentManager, vehicleManager);
     }
     
     /**
@@ -108,10 +128,10 @@ public class DashboardManager {
             
             switch (choice) {
                 case "1":
-                    handleBrowseAndRentVehicles();
+                    handleBrowseAndRentVehicles(customer);
                     break;
                 case "2":
-                    showRentalHistory(customer);
+                    rentalController.viewRentalHistory(customer);
                     break;
                 case "3":
                     showLoyaltyInfo(customer);
@@ -165,10 +185,10 @@ public class DashboardManager {
             
             switch (choice) {
                 case "1":
-                    handleBrowseAndRentVehicles();
+                    handleBrowseAndRentVehicles(customer);
                     break;
                 case "2":
-                    showRentalHistory(customer);
+                    rentalController.viewRentalHistory(customer);
                     break;
                 case "3":
                     handleMembershipUpgrade(customer);
@@ -263,35 +283,79 @@ public class DashboardManager {
         pauseForUser();
     }
     
-    private void handleBrowseAndRentVehicles() {
-        showLoadingMessage("Loading Vehicle Catalog");
-        showInfo("Browse & Rent Vehicles functionality will be implemented in VehicleManager.");
-        pauseForUser();
+    private void handleBrowseAndRentVehicles(Customer customer) {
+        boolean running = true;
+        
+        while (running) {
+            clearScreen();
+            System.out.println("┌─────────────────────────────────────────────────────────┐");
+            System.out.println("│                   RENTAL OPERATIONS                    │");
+            System.out.println("├─────────────────────────────────────────────────────────┤");
+            System.out.println("│ 1. Browse Available Vehicles                           │");
+            System.out.println("│ 2. Rent a Vehicle                                      │");
+            System.out.println("│ 3. Return Vehicle                                      │");
+            System.out.println("│ 4. Extend Rental                                       │");
+            System.out.println("│ 5. View My Active Rentals                              │");
+            System.out.println("│ 6. Back to Main Menu                                   │");
+            System.out.println("└─────────────────────────────────────────────────────────┘");
+            System.out.print("Choose option (1-6): ");
+            
+            String choice = scanner.nextLine().trim();
+            
+            switch (choice) {
+                case "1":
+                    showAvailableVehicles();
+                    break;
+                case "2":
+                    rentalController.processNewRental(customer);
+                    break;
+                case "3":
+                    rentalController.processRentalReturn(customer);
+                    break;
+                case "4":
+                    rentalController.extendRental(customer);
+                    break;
+                case "5":
+                    showActiveRentals(customer);
+                    break;
+                case "6":
+                    running = false;
+                    break;
+                default:
+                    showError("Invalid option! Please choose 1-6.");
+            }
+        }
     }
     
-    private void showRentalHistory(Customer customer) {
+    private void showAvailableVehicles() {
         clearScreen();
-        System.out.println("═".repeat(60));
-        System.out.println("RENTAL HISTORY - " + customer.getName());
-        System.out.println("═".repeat(60));
+        showLoadingMessage("Loading Available Vehicles");
         
-        if (customer.getRentalHistory().isEmpty()) {
-            System.out.println("No rental history found.");
-        } else {
-            System.out.println("Total Rentals: " + customer.getRentalHistory().size());
-            System.out.println("Total Spent: $" + String.format("%.2f", customer.getTotalSpent()));
-            
-            if (customer.getLastRental() != null) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                System.out.println("Last Rental: " + customer.getLastRental().format(formatter));
-            }
-            
-            System.out.println("\nDetailed rental history will be implemented in RentalManager.");
+        try {
+            vehicleManager.displayVehicles(vehicleManager.getAvailableVehicles());
+        } catch (Exception e) {
+            System.out.println("Error loading vehicles: " + e.getMessage());
         }
         
         pauseForUser();
     }
     
+    private void showActiveRentals(Customer customer) {
+        clearScreen();
+        System.out.println("═".repeat(60));
+        System.out.println("MY ACTIVE RENTALS - " + customer.getName());
+        System.out.println("═".repeat(60));
+        
+        try {
+            rentalService.displayAllActiveRentals();
+        } catch (Exception e) {
+            System.out.println("Error loading active rentals: " + e.getMessage());
+        }
+        
+        pauseForUser();
+    }
+    
+
     private void showLoyaltyInfo(MemberCustomer customer) {
         clearScreen();
         System.out.println("═".repeat(60));
