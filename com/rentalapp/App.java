@@ -2,7 +2,9 @@ package com.rentalapp;
 
 import java.util.Scanner;
 import com.rentalapp.vehicle.VehicleManager;
-
+import com.rentalapp.auth.AuthenticationManager;
+import com.rentalapp.auth.DashboardManager;
+import com.rentalapp.auth.User;
 
 /**
  * App class - Handles all menu operations and user interactions
@@ -10,373 +12,213 @@ import com.rentalapp.vehicle.VehicleManager;
 public class App {
     private Scanner scanner;
     private boolean running;
-    private Object currentUser; // Using Object temporarily until User classes are properly defined
+    private User currentUser;
     private VehicleManager vehicleManager;
+    private AuthenticationManager authManager;
+    private DashboardManager dashboardManager;
 
     public App() {
         this.scanner = new Scanner(System.in);
         this.running = true;
         this.currentUser = null;
         this.vehicleManager = new VehicleManager();
+        this.authManager = new AuthenticationManager();
+        this.dashboardManager = new DashboardManager();
     }
     
     /**
      * Start the application
      */
     public void start() {
+        showWelcomeMessage();
+        
         while (running) {
-            showMainMenu();
+            if (currentUser == null) {
+                showMainMenu();
+            } else {
+                dashboardManager.showDashboard(currentUser);
+                // After dashboard exits, logout the user
+                authManager.logout();
+                currentUser = null;
+            }
         }
+        
+        showGoodbyeMessage();
         scanner.close();
+    }
+    
+    /**
+     * Display welcome message
+     */
+    private void showWelcomeMessage() {
+        clearScreen();
+        System.out.println("╔═══════════════════════════════════════════════════════════╗");
+        System.out.println("║                                                           ║");
+        System.out.println("║             CAR RENTAL MANAGEMENT SYSTEM                 ║");
+        System.out.println("║                                                           ║");
+        System.out.println("║          Welcome to our premium car rental service!      ║");
+        System.out.println("║                                                           ║");
+        System.out.println("╚═══════════════════════════════════════════════════════════╝");
+        
+        showLoadingBar("Initializing system");
+        System.out.println("\nSystem ready!");
+        pauseForUser();
+    }
+    
+    /**
+     * Display goodbye message
+     */
+    private void showGoodbyeMessage() {
+        clearScreen();
+        System.out.println("╔═══════════════════════════════════════════════════════════╗");
+        System.out.println("║                                                           ║");
+        System.out.println("║                   Thank you for choosing                  ║");
+        System.out.println("║               CAR RENTAL SYSTEM                          ║");
+        System.out.println("║                                                           ║");
+        System.out.println("║                    Drive safely!                         ║");
+        System.out.println("║                                                           ║");
+        System.out.println("╚═══════════════════════════════════════════════════════════╝");
     }
     
     /**
      * Display the main menu
      */
     public void showMainMenu() {
-        System.out.println("\n=== MAIN MENU ===");
-        System.out.println("1. Login");
-        System.out.println("2. Register");
-        System.out.println("3. Rental Options (temp)");
-        System.out.println("4. Exit");
-        System.out.print("Please select an option: ");
+        clearScreen();
+        System.out.println("\n╔═══════════════════════════════════════════════════════════╗");
+        System.out.println("║                        MAIN MENU                         ║");
+        System.out.println("╠═══════════════════════════════════════════════════════════╣");
+        System.out.println("║                                                           ║");
+        System.out.println("║  1. Login to Your Account                                ║");
+        System.out.println("║  2. Create New Account                                   ║");
+        System.out.println("║  3. Browse Vehicles (Guest)                             ║");
+        System.out.println("║  4. Contact Support                                     ║");
+        System.out.println("║  5. Exit Application                                    ║");
+        System.out.println("║                                                           ║");
+        System.out.println("╚═══════════════════════════════════════════════════════════╝");
+        System.out.print("Please select an option (1-5): ");
         
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+        String choice = scanner.nextLine().trim();
         
         switch (choice) {
-            case 1:
-                showLoginMenu();
+            case "1":
+                handleLogin();
                 break;
-            case 2:
+            case "2":
                 handleRegistration();
                 break;
-            case 3:
-                showRentalMenu();
+            case "3":
+                handleGuestBrowsing();
                 break;
-            case 4:
-                System.out.println("Thank you for using Car Rental System!");
+            case "4":
+                handleContactSupport();
+                break;
+            case "5":
                 running = false;
                 break;
             default:
-                System.out.println("Invalid option. Please try again.");
+                showError("Invalid option! Please choose 1-5.");
         }
     }
     
     /**
-     * Display the login menu
+     * Handle user login
      */
-    public void showLoginMenu() {
-        System.out.println("\n=== LOGIN MENU ===");
-        System.out.println("1. Admin Login");
-        System.out.println("2. Customer Login");
-        System.out.println("3. Back to Main Menu");
-        System.out.print("Please select an option: ");
-        
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
-        
-        switch (choice) {
-            case 1:
-                handleAdminLogin();
-                break;
-            case 2:
-                handleCustomerLogin();
-                break;
-            case 3:
-                return; // Go back to main menu
-            default:
-                System.out.println("Invalid option. Please try again.");
-                showLoginMenu();
+    private void handleLogin() {
+        User user = authManager.login();
+        if (user != null) {
+            currentUser = user;
         }
     }
     
     /**
-     * Display the admin menu
+     * Handle user registration
      */
-    public void showAdminMenu() {
-        while (currentUser != null && currentUser.getClass().getSimpleName().equals("Admin")) {
-            System.out.println("\n=== ADMIN MENU ===");
-            System.out.println("1. Manage Vehicles");
-            System.out.println("2. View All Rentals");
-            System.out.println("3. Manage Customers");
-            System.out.println("4. Generate Reports");
-            System.out.println("5. System Settings");
-            System.out.println("6. Logout");
-            System.out.print("Please select an option: ");
-            
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-            
-            switch (choice) {
-                case 1:
-                    handleVehicleManagement();
-                    break;
-                case 2:
-                    handleViewAllRentals();
-                    break;
-                case 3:
-                    handleCustomerManagement();
-                    break;
-                case 4:
-                    handleReportGeneration();
-                    break;
-                case 5:
-                    handleSystemSettings();
-                    break;
-                case 6:
-                    logout();
-                    return;
-                default:
-                    System.out.println("Invalid option. Please try again.");
-            }
-        }
-    }
-    
-    /**
-     * Display the customer menu
-     */
-    public void showCustomerMenu() {
-        while (currentUser != null && currentUser.getClass().getSimpleName().contains("Customer")) {
-            System.out.println("\n=== CUSTOMER MENU ===");
-            System.out.println("1. Rental Services");
-            System.out.println("2. Account Management");
-            System.out.println("3. View Rental History");
-            System.out.println("4. Logout");
-            System.out.print("Please select an option: ");
-            
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-            
-            switch (choice) {
-                case 1:
-                    showRentalMenu();
-                    break;
-                case 2:
-                    showAccountMenu();
-                    break;
-                case 3:
-                    handleViewRentalHistory();
-                    break;
-                case 4:
-                    logout();
-                    return;
-                default:
-                    System.out.println("Invalid option. Please try again.");
-            }
-        }
-    }
-    
-    /**
-     * Display the rental menu for customers
-     */
-    public void showRentalMenu() {
-        System.out.println("\n=== RENTAL MENU ===");
-        System.out.println("1. Browse Available Vehicles");
-        System.out.println("2. Rent a Vehicle");
-        System.out.println("3. Return a Vehicle");
-        System.out.println("4. Extend Rental Period");
-        System.out.println("5. Back to Customer Menu");
-        System.out.print("Please select an option: ");
-        
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
-        
-        switch (choice) {
-            case 1:
-                handleBrowseVehicles();
-                break;
-            case 2:
-                handleRentVehicle();
-                break;
-            case 3:
-                handleReturnVehicle();
-                break;
-            case 4:
-                handleExtendRental();
-                break;
-            case 5:
-                return; // Go back to customer menu
-            default:
-                System.out.println("Invalid option. Please try again.");
-                showRentalMenu();
-        }
-    }
-    
-    /**
-     * Display the account menu for customers
-     */
-    public void showAccountMenu() {
-        System.out.println("\n=== ACCOUNT MENU ===");
-        System.out.println("1. View Profile");
-        System.out.println("2. Update Profile");
-        System.out.println("3. Change Password");
-        System.out.println("4. View Loyalty Points");
-        System.out.println("5. Payment Methods");
-        System.out.println("6. Back to Customer Menu");
-        System.out.print("Please select an option: ");
-        
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
-        
-        switch (choice) {
-            case 1:
-                handleViewProfile();
-                break;
-            case 2:
-                handleUpdateProfile();
-                break;
-            case 3:
-                handleChangePassword();
-                break;
-            case 4:
-                handleViewLoyaltyPoints();
-                break;
-            case 5:
-                handlePaymentMethods();
-                break;
-            case 6:
-                return; // Go back to customer menu
-            default:
-                System.out.println("Invalid option. Please try again.");
-                showAccountMenu();
-        }
-    }
-    
-    // Authentication Methods
-    private void handleAdminLogin() {
-        System.out.print("Enter admin username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter admin password: ");
-        String password = scanner.nextLine();
-        
-        // TODO: Implement actual authentication logic
-        System.out.println("Admin login functionality to be implemented...");
-        System.out.println("Username: " + username + " (authentication pending)");
-        // For now, simulate successful login
-        // currentUser = new Admin();
-        // showAdminMenu();
-    }
-    
-    private void handleCustomerLogin() {
-        System.out.print("Enter customer username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter customer password: ");
-        String password = scanner.nextLine();
-        
-        // TODO: Implement actual authentication logic
-        System.out.println("Customer login functionality to be implemented...");
-        System.out.println("Username: " + username + " (authentication pending)");
-        // For now, simulate successful login
-        // currentUser = new Customer();
-        // showCustomerMenu();
-    }
-    
     private void handleRegistration() {
-        System.out.println("Registration functionality to be implemented...");
-        // TODO: Implement customer registration
+        authManager.register();
     }
     
-    private void logout() {
-        currentUser = null;
-        System.out.println("Logged out successfully!");
-    }
-    
-    // Admin Menu Handlers
-    private void handleVehicleManagement() {
-        System.out.println("Vehicle management functionality to be implemented...");
-    }
-    
-    private void handleViewAllRentals() {
-        System.out.println("View all rentals functionality to be implemented...");
-    }
-    
-    private void handleCustomerManagement() {
-        System.out.println("Customer management functionality to be implemented...");
-    }
-    
-    private void handleReportGeneration() {
-        System.out.println("Report generation functionality to be implemented...");
-    }
-    
-    private void handleSystemSettings() {
-        System.out.println("System settings functionality to be implemented...");
-    }
-    
-    // Customer Rental Menu Handlers
-    private void handleBrowseVehicles() {
-        System.out.println("\n=== BROWSE VEHICLES ===");
-        System.out.println("1. Show All Available Vehicles");
-        System.out.println("2. Filter by Category (Economy/Luxury)");
-        System.out.println("3. Filter by Type (SUV, Sedan, etc.)");
-        System.out.println("4. Filter by Minimum Seat Count");
-        System.out.println("5. Back");
-        System.out.print("Choose option: ");
-
-        int option = scanner.nextInt();
-        scanner.nextLine();
-
-        switch (option) {
-        case 1:
+    /**
+     * Handle guest vehicle browsing
+     */
+    private void handleGuestBrowsing() {
+        clearScreen();
+        System.out.println("═".repeat(60));
+        System.out.println("GUEST VEHICLE BROWSING");
+        System.out.println("═".repeat(60));
+        
+        System.out.println("Available vehicles (preview for guests):");
+        System.out.println("Create an account to rent vehicles and enjoy exclusive benefits!");
+        
+        showLoadingBar("Loading vehicle catalog");
+        
+        // Show a preview of available vehicles
+        try {
             vehicleManager.displayVehicles(vehicleManager.getAvailableVehicles());
-            break;
-        case 2:
-            System.out.print("Enter category (Economy/Luxury): ");
-            String cat = scanner.nextLine();
-            vehicleManager.displayVehicles(vehicleManager.getVehiclesByCategory(cat));
-            break;
-        case 3:
-            System.out.print("Enter type (SUV, Sedan, etc.): ");
-            String type = scanner.nextLine();
-            vehicleManager.displayVehicles(vehicleManager.getVehiclesByType(type));
-            break;
-        case 4:
-            System.out.print("Enter minimum number of seats: ");
-            int seats = scanner.nextInt();
-            scanner.nextLine();
-            vehicleManager.displayVehicles(vehicleManager.getVehiclesBySeats(seats));
-            break;
-        case 5:
-            return;
-        default:
-            System.out.println("Invalid option.");
-    }
+        } catch (Exception e) {
+            System.out.println("Vehicle browsing functionality will be fully available after login.");
+        }
+        
+        System.out.println("\nReady to rent? Create an account or login to get started!");
+        pauseForUser();
     }
     
-    private void handleRentVehicle() {
-        System.out.println("Rent vehicle functionality to be implemented...");
+    /**
+     * Handle contact support
+     */
+    private void handleContactSupport() {
+        clearScreen();
+        System.out.println("═".repeat(60));
+        System.out.println("CONTACT SUPPORT");
+        System.out.println("═".repeat(60));
+        
+        System.out.println("Car Rental Support Center");
+        System.out.println("Phone: +1-800-RENTAL (1-800-736-8254)");
+        System.out.println("Email: support@rentalapp.com");
+        System.out.println("Website: www.rentalapp.com");
+        System.out.println("Hours: 24/7 Support Available");
+        System.out.println("Live Chat: Available on our website");
+        
+        System.out.println("\nEmergency Roadside Assistance: +1-800-HELP-NOW");
+        System.out.println("Technical Support: +1-800-TECH-HELP");
+        
+        pauseForUser();
     }
     
-    private void handleReturnVehicle() {
-        System.out.println("Return vehicle functionality to be implemented...");
+    /**
+     * Utility methods for UI
+     */
+    private void clearScreen() {
+        try {
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        } catch (Exception e) {
+            // If clearing fails, just print some newlines
+            for (int i = 0; i < 50; i++) {
+                System.out.println();
+            }
+        }
     }
     
-    private void handleExtendRental() {
-        System.out.println("Extend rental functionality to be implemented...");
+    private void showLoadingBar(String message) {
+        System.out.print("\n" + message + " ");
+        for (int i = 0; i < 20; i++) {
+            System.out.print("█");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        System.out.println(" Complete!");
     }
     
-    private void handleViewRentalHistory() {
-        System.out.println("View rental history functionality to be implemented...");
+    private void pauseForUser() {
+        System.out.print("\nPress Enter to continue...");
+        scanner.nextLine();
     }
     
-    // Customer Account Menu Handlers
-    private void handleViewProfile() {
-        System.out.println("View profile functionality to be implemented...");
-    }
-    
-    private void handleUpdateProfile() {
-        System.out.println("Update profile functionality to be implemented...");
-    }
-    
-    private void handleChangePassword() {
-        System.out.println("Change password functionality to be implemented...");
-    }
-    
-    private void handleViewLoyaltyPoints() {
-        System.out.println("View loyalty points functionality to be implemented...");
-    }
-    
-    private void handlePaymentMethods() {
-        System.out.println("Payment methods functionality to be implemented...");
+    private void showError(String message) {
+        System.out.println("\n" + message);
+        pauseForUser();
     }
 }
