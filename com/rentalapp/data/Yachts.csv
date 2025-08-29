@@ -1,0 +1,13 @@
+id,category,vesselType,location,purpose,capacity,duration,basePrice,available
+Y001,Yacht,40' Motor Yacht (Sunset),Langkawi,Tour / Special events,10,4h,5500,true
+Y002,Yacht,45' Motor Yacht (Day),Langkawi,Tour / Party,12,6h,10000,true
+Y003,Yacht,50' Motor Yacht,Kuala Terengganu,Tour / Family,14,6h,11500,true
+Y004,Yacht,55' Premium Motor Yacht,Langkawi,Events,16,6h,14000,true
+Y005,Yacht,60' Luxury Motor Yacht,Semporna,VIP Sunset & Reef,18,6h,16000,true
+Y006,Yacht,40' Sailing Catamaran,Langkawi,Tour / Family,12,4h,7000,true
+Y007,Yacht,45' Sailing Catamaran,Redang,Tour / Snorkel party,14,6h,9500,true
+Y008,Yacht,70' Superyacht (Day),Langkawi,Premium parties,20,8h,35000,true
+Y009,Yacht,80' Superyacht,Kota Kinabalu,Premium events,25,8h,45000,true
+Y010,Yacht,100'+ Superyacht,Langkawi,Ultra-luxury,30,8h,70000,true
+Y011,Yacht,48' Catamaran Yacht,Langkawi,Sunset / Wedding,14,4h,8000,true
+Y012,Yacht,65' Motor Yacht,Redang,Island cruise,18,6h,18500,true

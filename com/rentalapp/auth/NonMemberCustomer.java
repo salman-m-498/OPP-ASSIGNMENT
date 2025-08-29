@@ -12,12 +12,11 @@ public class NonMemberCustomer extends Customer {
     }
     
     public NonMemberCustomer(String username, String hashedPassword, String name, String email, String phone,
-                            String customerId, String address, String drivingLicenseNumber, 
-                            LocalDateTime licenseExpiryDate) {
-        super(username, hashedPassword, name, email, phone, customerId, address, 
-              drivingLicenseNumber, licenseExpiryDate, false);
+                             String customerId, String address, String icNumber) {
+        super(username, hashedPassword, name, email, phone, customerId, address, icNumber, false);
         this.eligibleForMembership = true;
     }
+
     
     // Getters
     public boolean isEligibleForMembership() { return eligibleForMembership; }
@@ -39,11 +38,7 @@ public class NonMemberCustomer extends Customer {
         return 0; // Non-members have no loyalty points
     }
     
-    @Override
-    public boolean isEligibleForPromo() {
-        // Non-members have limited promo eligibility
-        return totalSpent > 500 && isLicenseValid();
-    }
+
     
     @Override
     public double getDiscountRate() {
@@ -61,10 +56,9 @@ public class NonMemberCustomer extends Customer {
         }
         
         MemberCustomer memberCustomer = new MemberCustomer(
-            this.username, this.hashedPassword, this.name, this.email, this.phone,
-            this.customerId, this.address, this.drivingLicenseNumber, 
-            this.licenseExpiryDate, membershipId
-        );
+        this.username, this.hashedPassword, this.name, this.email, this.phone,
+        this.customerId, this.address, this.icNumber, membershipId, "Standard"
+    );
         
         // Transfer existing data
         memberCustomer.setTotalSpent(this.totalSpent);

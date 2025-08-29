@@ -6,31 +6,31 @@ import java.util.stream.Collectors;
 
 public class MaintenanceManager {
     private List<MaintenanceRecord> maintenanceRecords;
-    private Map<String, List<MaintenanceRecord>> vehicleMaintenanceMap;
+    private Map<String, List<MaintenanceRecord>> vesselMaintenanceMap;
     private int recordIdCounter;
 
     public MaintenanceManager() {
         this.maintenanceRecords = new ArrayList<>();
-        this.vehicleMaintenanceMap = new HashMap<>();
+        this.vesselMaintenanceMap = new HashMap<>();
         this.recordIdCounter = 1000;
     }
 
-    public MaintenanceRecord scheduleMaintenance(String vehicleId, String vehicleModel, 
+    public MaintenanceRecord scheduleMaintenance(String vesselId, String vesselType, 
                                                MaintenanceType type, LocalDate scheduledDate, 
                                                String description) {
         String recordId = "MR" + (++recordIdCounter);
         
         MaintenanceRecord record = new MaintenanceRecord(
-            recordId, vehicleId, vehicleModel, type, scheduledDate, 
+            recordId, vesselId, vesselType, type, scheduledDate, 
             description, MaintenanceStatus.SCHEDULED
         );
 
         maintenanceRecords.add(record);
-        vehicleMaintenanceMap.computeIfAbsent(vehicleId, k -> new ArrayList<>()).add(record);
+        vesselMaintenanceMap.computeIfAbsent(vesselId, k -> new ArrayList<>()).add(record);
 
         System.out.println("Maintenance scheduled successfully!");
         System.out.println("Record ID: " + recordId);
-        System.out.println("Vehicle: " + vehicleModel + " (" + vehicleId + ")");
+        System.out.println("Vessel: " + vesselType + " (" + vesselId + ")");
         System.out.println("Type: " + type);
         System.out.println("Scheduled Date: " + scheduledDate);
 
@@ -74,9 +74,6 @@ public class MaintenanceManager {
         record.setTechnician(technician);
         record.setNotes(notes);
 
-        // Schedule next maintenance based on type
-        scheduleNextMaintenance(record);
-
         System.out.println("Maintenance completed successfully!");
         System.out.println("Record ID: " + recordId);
         System.out.println("Cost: RM " + String.format("%.2f", cost));
@@ -85,8 +82,8 @@ public class MaintenanceManager {
         return true;
     }
 
-    public List<MaintenanceRecord> getVehicleMaintenance(String vehicleId) {
-        return vehicleMaintenanceMap.getOrDefault(vehicleId, new ArrayList<>());
+    public List<MaintenanceRecord> getVesselMaintenance(String vesselId) {
+        return vesselMaintenanceMap.getOrDefault(vesselId, new ArrayList<>());
     }
 
     public List<MaintenanceRecord> getMaintenanceByStatus(MaintenanceStatus status) {
@@ -113,8 +110,8 @@ public class MaintenanceManager {
                 .collect(Collectors.toList());
     }
 
-    public double getMaintenanceCostByVehicle(String vehicleId) {
-        return getVehicleMaintenance(vehicleId).stream()
+    public double getMaintenanceCostByVessel(String vesselId) {
+        return getVesselMaintenance(vesselId).stream()
                 .filter(record -> record.getStatus() == MaintenanceStatus.COMPLETED)
                 .mapToDouble(MaintenanceRecord::getCost)
                 .sum();
@@ -127,21 +124,21 @@ public class MaintenanceManager {
                 .sum();
     }
 
-    public void displayVehicleMaintenanceHistory(String vehicleId) {
-        List<MaintenanceRecord> vehicleRecords = getVehicleMaintenance(vehicleId);
+    public void displayVesselMaintenanceHistory(String vesselId) {
+        List<MaintenanceRecord> vesselRecords = getVesselMaintenance(vesselId);
         
-        if (vehicleRecords.isEmpty()) {
-            System.out.println("No maintenance records found for vehicle: " + vehicleId);
+        if (vesselRecords.isEmpty()) {
+            System.out.println("No maintenance records found for vessel: " + vesselId);
             return;
         }
 
         System.out.println("\n================ MAINTENANCE HISTORY ================");
-        System.out.println("Vehicle ID: " + vehicleId);
-        System.out.println("Total Maintenance Records: " + vehicleRecords.size());
-        System.out.println("Total Cost: RM " + String.format("%.2f", getMaintenanceCostByVehicle(vehicleId)));
+        System.out.println("Vessel ID: " + vesselId);
+        System.out.println("Total Maintenance Records: " + vesselRecords.size());
+        System.out.println("Total Cost: RM " + String.format("%.2f", getMaintenanceCostByVessel(vesselId)));
         System.out.println("-".repeat(55));
 
-        vehicleRecords.stream()
+        vesselRecords.stream()
                 .sorted(Comparator.comparing(MaintenanceRecord::getScheduledDate).reversed())
                 .forEach(record -> {
                     System.out.println("Record ID: " + record.getRecordId());
@@ -170,13 +167,13 @@ public class MaintenanceManager {
 
         System.out.println("\n================ UPCOMING MAINTENANCE ================");
         System.out.printf("%-12s %-15s %-15s %-12s %-20s%n", 
-                         "Record ID", "Vehicle ID", "Type", "Date", "Description");
+                         "Record ID", "Vessel ID", "Type", "Date", "Description");
         System.out.println("-".repeat(75));
 
         for (MaintenanceRecord record : upcoming) {
             System.out.printf("%-12s %-15s %-15s %-12s %-20s%n",
                              record.getRecordId(),
-                             record.getVehicleId(),
+                             record.getVesselId(),
                              record.getType(),
                              record.getScheduledDate(),
                              record.getDescription().length() > 20 ? 
@@ -196,7 +193,7 @@ public class MaintenanceManager {
 
         System.out.println("\n================ OVERDUE MAINTENANCE ================");
         System.out.printf("%-12s %-15s %-15s %-12s %-10s%n", 
-                         "Record ID", "Vehicle ID", "Type", "Due Date", "Days Late");
+                         "Record ID", "Vessel ID", "Type", "Due Date", "Days Late");
         System.out.println("-".repeat(70));
 
         LocalDate today = LocalDate.now();
@@ -204,7 +201,7 @@ public class MaintenanceManager {
             long daysLate = java.time.temporal.ChronoUnit.DAYS.between(record.getScheduledDate(), today);
             System.out.printf("%-12s %-15s %-15s %-12s %-10d%n",
                              record.getRecordId(),
-                             record.getVehicleId(),
+                             record.getVesselId(),
                              record.getType(),
                              record.getScheduledDate(),
                              daysLate);
@@ -304,45 +301,6 @@ public class MaintenanceManager {
         return true;
     }
 
-    private void scheduleNextMaintenance(MaintenanceRecord completedRecord) {
-        // Schedule next maintenance based on type
-        LocalDate nextDate = calculateNextMaintenanceDate(completedRecord.getType());
-        
-        if (nextDate != null) {
-            String description = "Regular " + completedRecord.getType() + " maintenance";
-            scheduleMaintenance(completedRecord.getVehicleId(), completedRecord.getVehicleModel(),
-                              completedRecord.getType(), nextDate, description);
-        }
-    }
-
-    private LocalDate calculateNextMaintenanceDate(MaintenanceType type) {
-        LocalDate today = LocalDate.now();
-        
-        switch (type) {
-            case OIL_CHANGE:
-                return today.plusMonths(3); // Every 3 months
-            case TIRE_ROTATION:
-                return today.plusMonths(6); // Every 6 months
-            case BRAKE_INSPECTION:
-                return today.plusMonths(6); // Every 6 months
-            case ENGINE_SERVICE:
-                return today.plusYears(1); // Every year
-            case TRANSMISSION_SERVICE:
-                return today.plusYears(2); // Every 2 years
-            case AIR_FILTER_REPLACEMENT:
-                return today.plusMonths(6); // Every 6 months
-            case BATTERY_CHECK:
-                return today.plusMonths(3); // Every 3 months
-            case GENERAL_INSPECTION:
-                return today.plusMonths(6); // Every 6 months
-            case EMERGENCY_REPAIR:
-                return null; // No scheduled follow-up for emergency repairs
-            case DEEP_CLEANING:
-                return today.plusMonths(3); // Every 3 months
-            default:
-                return today.plusMonths(6); // Default 6 months
-        }
-    }
 
     private MaintenanceRecord findRecord(String recordId) {
         return maintenanceRecords.stream()
@@ -355,8 +313,8 @@ public class MaintenanceManager {
         String lowerKeyword = keyword.toLowerCase();
         return maintenanceRecords.stream()
                 .filter(record -> 
-                    record.getVehicleId().toLowerCase().contains(lowerKeyword) ||
-                    record.getVehicleModel().toLowerCase().contains(lowerKeyword) ||
+                    record.getVesselId().toLowerCase().contains(lowerKeyword) ||
+                    record.getVesselType().toLowerCase().contains(lowerKeyword) ||
                     record.getDescription().toLowerCase().contains(lowerKeyword) ||
                     record.getTechnician().toLowerCase().contains(lowerKeyword))
                 .collect(Collectors.toList());
@@ -380,20 +338,20 @@ public class MaintenanceManager {
         }
     }
 
-    public Map<String, Double> getVehicleMaintenanceCostSummary() {
-        Map<String, Double> costByVehicle = new HashMap<>();
+    public Map<String, Double> getVesselMaintenanceCostSummary() {
+        Map<String, Double> costByVessel = new HashMap<>();
         for (MaintenanceRecord record : maintenanceRecords) {
             if (record.getStatus() == MaintenanceStatus.COMPLETED) {
-                costByVehicle.put(record.getVehicleId(), 
-                    costByVehicle.getOrDefault(record.getVehicleId(), 0.0) + record.getCost());
+                costByVessel.put(record.getVesselId(), 
+                    costByVessel.getOrDefault(record.getVesselId(), 0.0) + record.getCost());
             }
         }
-        return costByVehicle;
+        return costByVessel;
     }
 
-    public List<String> getHighMaintenanceVehicles(double threshold) {
-        Map<String, Double> costByVehicle = getVehicleMaintenanceCostSummary();
-        return costByVehicle.entrySet().stream()
+    public List<String> getHighMaintenanceVessels(double threshold) {
+        Map<String, Double> costByVessel = getVesselMaintenanceCostSummary();
+        return costByVessel.entrySet().stream()
                 .filter(entry -> entry.getValue() > threshold)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());

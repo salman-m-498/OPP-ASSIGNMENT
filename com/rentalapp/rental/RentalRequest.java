@@ -1,47 +1,65 @@
 package com.rentalapp.rental;
 
-import java.time.LocalDate;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 public class RentalRequest {
     private String customerId;
-    private String vehicleId;
+    private String vesselId;
     private String pickupLocation;
-    private LocalDate pickupDate;
-    private LocalDate returnDate;
-    private int driverAge;
-    private int rentalDays;
+    private LocalDateTime scheduledStart;   // When rental starts
+    private LocalDateTime scheduledEnd;     // When rental should end
+    private Duration duration;              // Duration (hours/minutes)
+    private List<AddOn> addOns; 
+    private double totalCost; 
 
-    public RentalRequest(String customerId, String vehicleId, String pickupLocation,
-                        LocalDate pickupDate, LocalDate returnDate, int driverAge) {
+    // ================= Constructor =================
+    public RentalRequest(String customerId, String vesselId, String pickupLocation,
+                         LocalDateTime scheduledStart, LocalDateTime scheduledEnd, Duration duration) {
         this.customerId = customerId;
-        this.vehicleId = vehicleId;
+        this.vesselId = vesselId;
         this.pickupLocation = pickupLocation;
-        this.pickupDate = pickupDate;
-        this.returnDate = returnDate;
-        this.driverAge = driverAge;
-        this.rentalDays = (int) java.time.temporal.ChronoUnit.DAYS.between(pickupDate, returnDate);
+        this.scheduledStart = scheduledStart;
+        this.scheduledEnd = scheduledEnd;
+        this.duration = duration;
+        this.addOns = new ArrayList<>();
+        this.totalCost = 0.0; 
     }
 
+    // Alternative constructor (duration can be calculated later)
+    public RentalRequest(String customerId, String vesselId, String pickupLocation,
+                         LocalDateTime scheduledStart, LocalDateTime scheduledEnd) {
+        this.customerId = customerId;
+        this.vesselId = vesselId;
+        this.pickupLocation = pickupLocation;
+        this.scheduledStart = scheduledStart;
+        this.scheduledEnd = scheduledEnd;
+        this.duration = Duration.between(scheduledStart, scheduledEnd);
+    }
+
+    // ================= Getters =================
     public String getCustomerId() { return customerId; }
-    public void setCustomerId(String customerId) { this.customerId = customerId; }
-    
-    public String getVehicleId() { return vehicleId; }
-    public void setVehicleId(String vehicleId) { this.vehicleId = vehicleId; }
-    
+    public String getVesselId() { return vesselId; }
     public String getPickupLocation() { return pickupLocation; }
+    public LocalDateTime getScheduledStart() { return scheduledStart; }
+    public LocalDateTime getScheduledEnd() { return scheduledEnd; }
+    public Duration getDuration() { return duration; }
+    public List<AddOn> getAddOns() { return addOns; }
+    public double getTotalCost() { return totalCost; }
+    
+    // ================= Setters =================
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+    public void setVesselId(String vesselId) { this.vesselId = vesselId; }
     public void setPickupLocation(String pickupLocation) { this.pickupLocation = pickupLocation; }
-    
-    public LocalDate getPickupDate() { return pickupDate; }
-    public void setPickupDate(LocalDate pickupDate) { this.pickupDate = pickupDate; }
-    
-    public LocalDate getReturnDate() { return returnDate; }
-    public void setReturnDate(LocalDate returnDate) { this.returnDate = returnDate; }
-    
-    public int getDriverAge() { return driverAge; }
-    public void setDriverAge(int driverAge) { this.driverAge = driverAge; }
-    
-    public int getRentalDays() { return rentalDays; }
-    public void setRentalDays(int rentalDays) { this.rentalDays = rentalDays; }
+    public void setScheduledStart(LocalDateTime scheduledStart) { this.scheduledStart = scheduledStart; }
+    public void setScheduledEnd(LocalDateTime scheduledEnd) { this.scheduledEnd = scheduledEnd; }
+    public void setDuration(Duration duration) { this.duration = duration; }
+    public void setAddOns(List<AddOn> addOns) { this.addOns = addOns; }
+    public void setTotalCost(double totalCost) { this.totalCost = totalCost; }
 
-
+    public double getTotalAddOnsCost() {
+    return addOns.stream().mapToDouble(AddOn::getPrice).sum();
+}
 }

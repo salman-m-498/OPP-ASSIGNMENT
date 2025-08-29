@@ -6,28 +6,26 @@ public class MemberCustomer extends Customer {
     private int loyaltyPoints;
     private String membershipId;
     private LocalDateTime membershipStartDate;
-    private String membershipTier; // Bronze, Silver, Gold, Platinum
-    private double memberDiscountRate;
+    private String membershipTier; // Standard or VIP
+    private double discountRate;
     
     public MemberCustomer() {
         super();
         this.isMember = true;
         this.loyaltyPoints = 0;
         this.membershipStartDate = LocalDateTime.now();
-        this.membershipTier = "Bronze";
-        this.memberDiscountRate = 0.05; // 5% discount for members
+        this.membershipTier = "Standard"; 
+        this.discountRate = 0.08; // 8% default for standard
     }
     
-    public MemberCustomer(String username, String hashedPassword, String name, String email, String phone,
-                         String customerId, String address, String drivingLicenseNumber, 
-                         LocalDateTime licenseExpiryDate, String membershipId) {
-        super(username, hashedPassword, name, email, phone, customerId, address, 
-              drivingLicenseNumber, licenseExpiryDate, true);
+     public MemberCustomer(String username, String hashedPassword, String name, String email, String phone,
+                         String customerId, String address, String icNumber, String membershipId,
+                         String membershipTier) {
+        super(username, hashedPassword, name, email, phone, customerId, address, icNumber, true);
         this.membershipId = membershipId;
         this.loyaltyPoints = 0;
         this.membershipStartDate = LocalDateTime.now();
-        this.membershipTier = "Bronze";
-        this.memberDiscountRate = 0.05;
+        setMembershipTier(membershipTier); // will assign correct discountRate
     }
     
     // Getters
@@ -35,11 +33,14 @@ public class MemberCustomer extends Customer {
     public String getMembershipId() { return membershipId; }
     public LocalDateTime getMembershipStartDate() { return membershipStartDate; }
     public String getMembershipTier() { return membershipTier; }
-    public double getMemberDiscountRate() { return memberDiscountRate; }
     
     // Setters
     public void setMembershipId(String membershipId) { this.membershipId = membershipId; }
     public void setMembershipTier(String membershipTier) { 
+        if (!membershipTier.equalsIgnoreCase("Standard") && 
+            !membershipTier.equalsIgnoreCase("VIP")) {
+            throw new IllegalArgumentException("Membership tier must be either Standard or VIP.");
+        }
         this.membershipTier = membershipTier;
         updateDiscountRate();
     }
@@ -47,50 +48,27 @@ public class MemberCustomer extends Customer {
     @Override
     public void addLoyaltyPoints(int points) {
         this.loyaltyPoints += points;
-        updateMembershipTier();
     }
     
-    private void updateMembershipTier() {
-        if (loyaltyPoints >= 5000) {
-            setMembershipTier("Platinum");
-        } else if (loyaltyPoints >= 2000) {
-            setMembershipTier("Gold");
-        } else if (loyaltyPoints >= 500) {
-            setMembershipTier("Silver");
-        } else {
-            setMembershipTier("Bronze");
-        }
-    }
-    
+
     private void updateDiscountRate() {
-        switch (membershipTier) {
-            case "Platinum":
-                this.memberDiscountRate = 0.20; // 20%
-                break;
-            case "Gold":
-                this.memberDiscountRate = 0.15; // 15%
-                break;
-            case "Silver":
-                this.memberDiscountRate = 0.10; // 10%
-                break;
-            default:
-                this.memberDiscountRate = 0.05; // 5%
+        if ("VIP".equalsIgnoreCase(this.membershipTier)) {
+            this.discountRate = 0.15; // 15% for VIP
+        } else {
+            this.discountRate = 0.08; // 8% for Standard
         }
     }
-    
-    @Override
-    public boolean isEligibleForPromo() {
-        return loyaltyPoints >= 100 && isLicenseValid();
-    }
-    
+
+
     @Override
     public double getDiscountRate() {
-        return memberDiscountRate;
+        return discountRate;
     }
-    
+
     @Override
     public String toString() {
-        return String.format("MemberCustomer{username='%s', name='%s', tier='%s', points=%d}", 
-                           username, name, membershipTier, loyaltyPoints);
+        return String.format("MemberCustomer{username='%s', name='%s', type='%s', points=%d, discount=%.0f%%}", 
+                           username, name, membershipTier, loyaltyPoints, discountRate * 100);
     }
 }
+    

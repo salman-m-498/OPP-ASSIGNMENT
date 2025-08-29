@@ -1,0 +1,13 @@
+id,category,vesselType,location,purpose,capacity,duration,basePrice,available
+P001,Pontoon,24' Pontoon,Putrajaya Lake,Tour / Small party,10,2h,1200,true
+P002,Pontoon,26' Pontoon (Sunset),Putrajaya Lake,Tour / Proposal,10,2h,1500,true
+P003,Pontoon,30' Party Pontoon,Putrajaya Lake,Birthday / Events,14,3h,2400,true
+P004,Pontoon,Covered Lake Cruiser,Putrajaya Lake,Group tour,25,2h,2800,true
+P005,Pontoon,Boutique Pontoon,Putrajaya Lake,Special events,12,3h,2300,true
+P006,Pontoon,Corporate Lake Charter,Putrajaya Lake,Corporate mixer,40,2h,4500,true
+P007,Pontoon,Coastal Pontoon,Langkawi,Sunset coastal cruise,12,3h,3200,true
+P008,Pontoon,Island Pontoon,Redang,Party / Snorkel,14,4h,3500,true
+P009,Pontoon,Beach Pontoon,Semporna,Coastal cruise,12,4h,3000,true
+P010,Pontoon,Marina Party Pontoon,Kota Kinabalu,Private party,16,3h,4200,true
+P011,Pontoon,Premium Decor Pontoon,Langkawi,Wedding / Proposal,10,3h,4500,true
+P012,Pontoon,Double-Pontoon Raft-Up,Putrajaya Lake,Large party,20,3h,3800,true

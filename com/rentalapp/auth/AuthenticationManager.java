@@ -18,8 +18,9 @@ public class AuthenticationManager {
     // Email and phone validation patterns
     private static final Pattern EMAIL_PATTERN = 
         Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
-    private static final Pattern PHONE_PATTERN = 
-        Pattern.compile("^[+]?[1-9]\\d{1,14}$");
+    private static final Pattern PHONE_PATTERN =
+        Pattern.compile("^(\\+60|0)1\\d{8,9}$");
+    private static final Pattern IC_PATTERN = Pattern.compile("^\\d{6}-\\d{2}-\\d{4}$");
     
     public AuthenticationManager() {
         this.users = new HashMap<>();
@@ -215,20 +216,21 @@ public class AuthenticationManager {
         System.out.print("Enter address: ");
         String address = scanner.nextLine().trim();
         
-        String licenseNumber = getValidLicenseNumber();
-        if (licenseNumber == null) return null;
-        
-        LocalDateTime licenseExpiry = getValidLicenseExpiry();
-        if (licenseExpiry == null) return null;
-        
+        String icNumber = getValidICNumber();
+        if (icNumber == null) return null;
+
         if ("MEMBER".equals(type)) {
-            String membershipId = generateMembershipId();
-            return new MemberCustomer(username, hashedPassword, name, email, phone, 
-                                    customerId, address, licenseNumber, licenseExpiry, membershipId);
-        } else {
-            return new NonMemberCustomer(username, hashedPassword, name, email, phone, 
-                                       customerId, address, licenseNumber, licenseExpiry);
-        }
+        String membershipId = generateMembershipId();
+        return new MemberCustomer(
+            username, hashedPassword, name, email, phone,
+            customerId, address, icNumber, membershipId, "Standard" // ✅ Added membershipTier
+        );
+       } else {
+        return new NonMemberCustomer(
+            username, hashedPassword, name, email, phone,
+            customerId, address, icNumber
+        );
+       }
     }
     
     /**
@@ -333,40 +335,19 @@ public class AuthenticationManager {
         }
     }
     
-    private String getValidLicenseNumber() {
-        while (true) {
-            System.out.print("Enter driving license number: ");
-            String license = scanner.nextLine().trim();
-            
-            if (license.length() < 5) {
-                System.out.println("License number must be at least 5 characters!");
-                continue;
-            }
-            
-            return license;
+    private String getValidICNumber() {
+    while (true) {
+        System.out.print("Enter Malaysian IC number (YYMMDD-XX-XXXX): ");
+        String ic = scanner.nextLine().trim();
+
+        if (!IC_PATTERN.matcher(ic).matches()) {
+            System.out.println("Invalid IC format! Example: 990101-14-5678");
+            continue;
         }
+
+        return ic;
     }
-    
-    private LocalDateTime getValidLicenseExpiry() {
-        while (true) {
-            System.out.print("Enter license expiry date (YYYY-MM-DD): ");
-            String dateStr = scanner.nextLine().trim();
-            
-            try {
-                LocalDateTime expiryDate = LocalDateTime.parse(dateStr + "T00:00:00");
-                
-                if (expiryDate.isBefore(LocalDateTime.now())) {
-                    System.out.println("License expiry date cannot be in the past!");
-                    continue;
-                }
-                
-                return expiryDate;
-            } catch (Exception e) {
-                System.out.println("Invalid date format! Use YYYY-MM-DD");
-            }
-        }
-    }
-    
+}
     /**
      * Password hashing and verification
      */
@@ -387,17 +368,48 @@ public class AuthenticationManager {
     private boolean verifyPassword(String password, String hashedPassword) {
         return hashPassword(password).equals(hashedPassword);
     }
+
+    // Public method for checking the current user's password
+    public boolean verifyCurrentUserPassword(String password) {
+    if (currentUser == null) return false;
+    return verifyPassword(password, currentUser.getHashedPassword());
+    }
+
+    public boolean changeCurrentUserPassword(String currentPassword, String newPassword) {
+    if (currentUser == null) return false;
+
+    // Verify current password
+    if (!verifyPassword(currentPassword, currentUser.getHashedPassword())) {
+        return false;
+    }
+
+    // Update password
+    currentUser.setHashedPassword(hashPassword(newPassword));
+    saveUsers();
+    return true;
+    }
+
+    public boolean resetPasswordForUser(String username, String newPassword) {
+    if (!(currentUser instanceof Admin)) return false;
+    User user = users.get(username);
+    if (user == null) return false;
+
+    user.setHashedPassword(hashPassword(newPassword));
+    saveUsers();
+    return true;
+    }
     
     /**
      * ID generation methods
      */
-    private String generateCustomerId() {
+    public String generateCustomerId() {
         return "CUST" + System.currentTimeMillis() % 100000;
     }
     
-    private String generateMembershipId() {
+    public String generateMembershipId() {
         return "MEM" + System.currentTimeMillis() % 100000;
     }
+
     
     /**
      * File operations
@@ -465,6 +477,9 @@ public class AuthenticationManager {
     public User getCurrentUser() { return currentUser; }
     public Map<String, User> getAllUsers() { return new HashMap<>(users); }
     
+    public User getUserByUsername(String username) {
+    return users.get(username);
+    }
     // Admin operations
     public boolean deleteUser(String username) {
         if (currentUser instanceof Admin && users.containsKey(username)) {
@@ -494,4 +509,14 @@ public class AuthenticationManager {
         }
         return false;
     }
+
+    public boolean updateUser(String username, User updatedUser) {
+    if (users.containsKey(username)) {
+        users.put(username, updatedUser);
+        saveUsers();
+        return true;
+    }
+    return false;
 }
+}
+

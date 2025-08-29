@@ -1,7 +1,7 @@
 package com.rentalapp;
 
 import java.util.Scanner;
-import com.rentalapp.vehicle.VehicleManager;
+import com.rentalapp.vessel.VesselManager;
 import com.rentalapp.auth.AuthenticationManager;
 import com.rentalapp.auth.DashboardManager;
 import com.rentalapp.auth.User;
@@ -13,7 +13,7 @@ public class App {
     private Scanner scanner;
     private boolean running;
     private User currentUser;
-    private VehicleManager vehicleManager;
+    private VesselManager vesselManager;
     private AuthenticationManager authManager;
     private DashboardManager dashboardManager;
 
@@ -21,9 +21,9 @@ public class App {
         this.scanner = new Scanner(System.in);
         this.running = true;
         this.currentUser = null;
-        this.vehicleManager = new VehicleManager();
+         this.vesselManager = new VesselManager();
         this.authManager = new AuthenticationManager();
-        this.dashboardManager = new DashboardManager();
+        this.dashboardManager = new DashboardManager(authManager);
     }
     
     /**
@@ -54,9 +54,9 @@ public class App {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════════╗");
         System.out.println("║                                                           ║");
-        System.out.println("║             CAR RENTAL MANAGEMENT SYSTEM                 ║");
+        System.out.println("║             VESSEL RENTAL MANAGEMENT SYSTEM               ║");
         System.out.println("║                                                           ║");
-        System.out.println("║          Welcome to our premium car rental service!      ║");
+        System.out.println("║          Welcome to our premium vessel rental service!    ║");
         System.out.println("║                                                           ║");
         System.out.println("╚═══════════════════════════════════════════════════════════╝");
         
@@ -73,9 +73,9 @@ public class App {
         System.out.println("╔═══════════════════════════════════════════════════════════╗");
         System.out.println("║                                                           ║");
         System.out.println("║                   Thank you for choosing                  ║");
-        System.out.println("║               CAR RENTAL SYSTEM                          ║");
+        System.out.println("║                    VESSEL RENTAL SYSTEM                   ║");
         System.out.println("║                                                           ║");
-        System.out.println("║                    Drive safely!                         ║");
+        System.out.println("║                       ENJOY!                              ║");
         System.out.println("║                                                           ║");
         System.out.println("╚═══════════════════════════════════════════════════════════╝");
     }
@@ -85,17 +85,17 @@ public class App {
      */
     public void showMainMenu() {
         clearScreen();
-        System.out.println("\n╔═══════════════════════════════════════════════════════════╗");
-        System.out.println("║                        MAIN MENU                         ║");
-        System.out.println("╠═══════════════════════════════════════════════════════════╣");
-        System.out.println("║                                                           ║");
-        System.out.println("║  1. Login to Your Account                                ║");
-        System.out.println("║  2. Create New Account                                   ║");
-        System.out.println("║  3. Browse Vehicles (Guest)                             ║");
-        System.out.println("║  4. Contact Support                                     ║");
-        System.out.println("║  5. Exit Application                                    ║");
-        System.out.println("║                                                           ║");
-        System.out.println("╚═══════════════════════════════════════════════════════════╝");
+        System.out.println("\n╔═════════════════════════════════════════════════════════════╗");
+        System.out.println("║                        MAIN MENU                            ║");
+        System.out.println("╠═════════════════════════════════════════════════════════════╣");
+        System.out.println("║                                                             ║");
+        System.out.println("║  1. Login to Your Account                                   ║");
+        System.out.println("║  2. Create New Account                                      ║");
+        System.out.println("║  3. Browse Vessels (Guest)                                  ║");
+        System.out.println("║  4. Contact Support                                         ║");
+        System.out.println("║  5. Exit Application                                        ║");
+        System.out.println("║                                                             ║");
+        System.out.println("╚═════════════════════════════════════════════════════════════╝");
         System.out.print("Please select an option (1-5): ");
         
         String choice = scanner.nextLine().trim();
@@ -139,24 +139,24 @@ public class App {
     }
     
     /**
-     * Handle guest vehicle browsing
+     * Handle guest vessel browsing
      */
     private void handleGuestBrowsing() {
         clearScreen();
         System.out.println("═".repeat(60));
-        System.out.println("GUEST VEHICLE BROWSING");
+        System.out.println("GUEST VESSEL BROWSING");
         System.out.println("═".repeat(60));
         
-        System.out.println("Available vehicles (preview for guests):");
-        System.out.println("Create an account to rent vehicles and enjoy exclusive benefits!");
+        System.out.println("Available VESSEL (preview for guests):");
+        System.out.println("Create an account to rent vessels and enjoy exclusive benefits!");
         
-        showLoadingBar("Loading vehicle catalog");
+        showLoadingBar("Loading vessel catalog");
         
         // Show a preview of available vehicles
         try {
-            vehicleManager.displayVehicles(vehicleManager.getAvailableVehicles());
+            vesselManager.displayVessels(vesselManager.getAvailableVessels());
         } catch (Exception e) {
-            System.out.println("Vehicle browsing functionality will be fully available after login.");
+            System.out.println("Vessel browsing functionality will be fully available after login.");
         }
         
         System.out.println("\nReady to rent? Create an account or login to get started!");
@@ -172,14 +172,14 @@ public class App {
         System.out.println("CONTACT SUPPORT");
         System.out.println("═".repeat(60));
         
-        System.out.println("Car Rental Support Center");
+        System.out.println("Vessel Rental Support Center");
         System.out.println("Phone: +1-800-RENTAL (1-800-736-8254)");
         System.out.println("Email: support@rentalapp.com");
         System.out.println("Website: www.rentalapp.com");
         System.out.println("Hours: 24/7 Support Available");
         System.out.println("Live Chat: Available on our website");
         
-        System.out.println("\nEmergency Roadside Assistance: +1-800-HELP-NOW");
+        System.out.println("\nEmergency Assistance: +1-800-HELP-NOW");
         System.out.println("Technical Support: +1-800-TECH-HELP");
         
         pauseForUser();

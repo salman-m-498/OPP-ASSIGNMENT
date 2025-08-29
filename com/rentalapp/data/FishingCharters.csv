@@ -1,0 +1,11 @@
+id,category,vesselType,location,purpose,capacity,duration,basePrice,available
+F001,Fishing Charter,Inshore Light Tackle,Kuala Terengganu,Reef fishing,6,4h,800,true
+F002,Fishing Charter,Full-Day Offshore,Kuala Terengganu/Redang,Deep-sea fishing,6,8h,1800,true
+F003,Fishing Charter,Night Squid Trip,Terengganu coast,Squid fishing,8,5h,1200,true
+F004,Fishing Charter,Langkawi Inshore,Langkawi,Coastal fishing,6,5h,1100,true
+F005,Fishing Charter,Semporna Reef Day,Semporna,Reef fishing,6,6h,2000,true
+F006,Fishing Charter,Semporna Offshore,Semporna,Deep-sea fishing,6,8h,2800,true
+F007,Fishing Charter,Redang Reef Day,Redang,Reef fishing,6,6h,1800,true
+F008,Fishing Charter,Rompin Sailfish (Seasonal),Pahang,Sailfish fishing,4,8h,3200,true
+F009,Fishing Charter,Coastal Family Try-Out,Kuala Terengganu,Family fishing,8,4h,900,true
+F010,Fishing Charter,Langkawi Sunset Fish,Langkawi,Sunset fishing,6,4h,1000,true

@@ -4,8 +4,8 @@ import java.time.LocalDate;
 
 public class MaintenanceRecord {
     private String recordId;
-    private String vehicleId;
-    private String vehicleModel;
+    private String vesselId;
+    private String vesselType;
     private MaintenanceType type;
     private LocalDate scheduledDate;
     private LocalDate actualStartDate;
@@ -15,15 +15,15 @@ public class MaintenanceRecord {
     private double cost;
     private String technician;
     private String notes;
-    private int mileage;
+    private int engineHours;
     private String partsUsed;
 
-    public MaintenanceRecord(String recordId, String vehicleId, String vehicleModel,
+    public MaintenanceRecord(String recordId, String vesselId, String vesselType,
                            MaintenanceType type, LocalDate scheduledDate, String description,
                            MaintenanceStatus status) {
         this.recordId = recordId;
-        this.vehicleId = vehicleId;
-        this.vehicleModel = vehicleModel;
+        this.vesselId = vesselId;
+        this.vesselType = vesselType;
         this.type = type;
         this.scheduledDate = scheduledDate;
         this.description = description;
@@ -31,15 +31,15 @@ public class MaintenanceRecord {
         this.cost = 0.0;
         this.technician = "";
         this.notes = "";
-        this.mileage = 0;
+        this.engineHours = 0;
         this.partsUsed = "";
     }
 
     // Full constructor
-    public MaintenanceRecord(String recordId, String vehicleId, String vehicleModel,
+    public MaintenanceRecord(String recordId, String vesselId, String vesselType,
                            MaintenanceType type, LocalDate scheduledDate, String description,
                            MaintenanceStatus status, double cost, String technician, String notes) {
-        this(recordId, vehicleId, vehicleModel, type, scheduledDate, description, status);
+        this(recordId, vesselId, vesselType, type, scheduledDate, description, status);
         this.cost = cost;
         this.technician = technician;
         this.notes = notes;
@@ -48,7 +48,7 @@ public class MaintenanceRecord {
     public void printRecord() {
         System.out.println("\n================ MAINTENANCE RECORD ================");
         System.out.println("Record ID: " + recordId);
-        System.out.println("Vehicle: " + vehicleModel + " (" + vehicleId + ")");
+        System.out.println("Vessel: " + vesselType + " (" + vesselId + ")");
         System.out.println("Type: " + type);
         System.out.println("Status: " + status);
         System.out.println("Scheduled Date: " + scheduledDate);
@@ -71,8 +71,8 @@ public class MaintenanceRecord {
             System.out.println("Technician: " + technician);
         }
         
-        if (mileage > 0) {
-            System.out.println("Vehicle Mileage: " + mileage + " km");
+        if (engineHours > 0) {
+            System.out.println("Engine Hours: " + engineHours + " hours");
         }
         
         if (!partsUsed.isEmpty()) {
@@ -87,11 +87,10 @@ public class MaintenanceRecord {
     }
 
     public void printSummary() {
-        String costStr = cost > 0 ? "RM " + String.format("%.2f", cost) : "N/A";
-        System.out.println(recordId + " | " + vehicleId + " | " + type + 
-                          " | " + scheduledDate + " | " + status + " | " + costStr);
-    }
-
+        String costStr = cost > 0 ? "RM " + String.format("%.2f", cost) : "-";
+        System.out.printf("%-8s | %-6s | %-20s | %-12s | %-12s | %-10s%n",
+            recordId, vesselId, type, scheduledDate, status, costStr);
+}
     public boolean isOverdue() {
         return status == MaintenanceStatus.SCHEDULED && 
                scheduledDate.isBefore(LocalDate.now());
@@ -130,15 +129,15 @@ public class MaintenanceRecord {
         switch (type) {
             case EMERGENCY_REPAIR:
                 return "CRITICAL";
-            case BRAKE_INSPECTION:
             case ENGINE_SERVICE:
-            case TRANSMISSION_SERVICE:
+            case SAFETY_EQUIPMENT_CHECK:
+            case HULL_INSPECTION:
                 return "HIGH";
-            case OIL_CHANGE:
-            case TIRE_ROTATION:
-            case BATTERY_CHECK:
+            case ELECTRICAL_SYSTEM_CHECK:
+            case PROPELLER_MAINTENANCE:
+            case FUEL_SYSTEM_SERVICE:
                 return "MEDIUM";
-            case AIR_FILTER_REPLACEMENT:
+            case NAVIGATION_SYSTEM_CHECK:
             case DEEP_CLEANING:
             case GENERAL_INSPECTION:
                 return "LOW";
@@ -154,8 +153,8 @@ public class MaintenanceRecord {
 
     // Getters
     public String getRecordId() { return recordId; }
-    public String getVehicleId() { return vehicleId; }
-    public String getVehicleModel() { return vehicleModel; }
+    public String getVesselId() { return vesselId; }
+    public String getVesselType() { return vesselType; }
     public MaintenanceType getType() { return type; }
     public LocalDate getScheduledDate() { return scheduledDate; }
     public LocalDate getActualStartDate() { return actualStartDate; }
@@ -165,13 +164,13 @@ public class MaintenanceRecord {
     public double getCost() { return cost; }
     public String getTechnician() { return technician; }
     public String getNotes() { return notes; }
-    public int getMileage() { return mileage; }
+    public int getEngineHours() { return engineHours; }
     public String getPartsUsed() { return partsUsed; }
 
     // Setters
     public void setRecordId(String recordId) { this.recordId = recordId; }
-    public void setVehicleId(String vehicleId) { this.vehicleId = vehicleId; }
-    public void setVehicleModel(String vehicleModel) { this.vehicleModel = vehicleModel; }
+    public void setVesselId(String vesselId) { this.vesselId = vesselId; }
+    public void setVesselType(String vesselType) { this.vesselType = vesselType; }
     public void setType(MaintenanceType type) { this.type = type; }
     public void setScheduledDate(LocalDate scheduledDate) { this.scheduledDate = scheduledDate; }
     public void setActualStartDate(LocalDate actualStartDate) { this.actualStartDate = actualStartDate; }
@@ -181,15 +180,15 @@ public class MaintenanceRecord {
     public void setCost(double cost) { this.cost = cost; }
     public void setTechnician(String technician) { this.technician = technician; }
     public void setNotes(String notes) { this.notes = notes; }
-    public void setMileage(int mileage) { this.mileage = mileage; }
+    public void setEngineHours(int engineHours) { this.engineHours = engineHours; }
     public void setPartsUsed(String partsUsed) { this.partsUsed = partsUsed; }
 
     @Override
     public String toString() {
         return "MaintenanceRecord{" +
                 "recordId='" + recordId + '\'' +
-                ", vehicleId='" + vehicleId + '\'' +
-                ", vehicleModel='" + vehicleModel + '\'' +
+                ", vesselId='" + vesselId + '\'' +
+                ", vesselType='" + vesselType + '\'' +
                 ", type=" + type +
                 ", scheduledDate=" + scheduledDate +
                 ", status=" + status +

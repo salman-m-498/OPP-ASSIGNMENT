@@ -25,27 +25,36 @@ public class PaymentSummary {
         this.preferredPaymentMethod = "";
     }
 
-    public void addPayment(double amount, int loyaltyPoints) {
-        this.totalSpent += amount;
+    // Add payment with loyalty points and optional method
+    public void addPayment(double amount, int loyaltyPoints, String paymentMethod, boolean isNewRental) {
+    if (amount < 0) amount = 0; // Ensure refunds don't reduce total spent
+
+    this.totalSpent += amount;
+
+    // Only increment rentals when this is a new rental payment
+    if (isNewRental) {
         this.totalRentals++;
-        this.totalLoyaltyPointsEarned += loyaltyPoints;
-        this.lastPaymentDate = LocalDateTime.now();
-        this.paymentHistory.add(amount);
-        
-        // Recalculate average
-        this.averageRentalCost = this.totalSpent / this.totalRentals;
     }
 
-    public void addPaymentWithMethod(double amount, int loyaltyPoints, String paymentMethod) {
-        addPayment(amount, loyaltyPoints);
-        
-        // Track payment method usage
-        paymentMethodBreakdown.put(paymentMethod, 
+    this.totalLoyaltyPointsEarned += loyaltyPoints;
+    this.lastPaymentDate = LocalDateTime.now();
+    this.paymentHistory.add(amount);
+
+    // Update payment method breakdown
+    if (paymentMethod != null && !paymentMethod.isEmpty()) {
+        paymentMethodBreakdown.put(paymentMethod,
             paymentMethodBreakdown.getOrDefault(paymentMethod, 0.0) + amount);
-        
-        // Update preferred payment method (most used by amount)
         updatePreferredPaymentMethod();
     }
+
+    // Update average rental cost (avoid division by zero)
+    this.averageRentalCost = totalRentals > 0 ? totalSpent / totalRentals : 0;
+    }
+
+    public void addLoyaltyPoints(int points) {
+    this.totalLoyaltyPointsEarned += points;
+}
+
 
     private void updatePreferredPaymentMethod() {
         if (!paymentMethodBreakdown.isEmpty()) {
@@ -63,56 +72,37 @@ public class PaymentSummary {
         System.out.println("Total Spent: RM " + String.format("%.2f", totalSpent));
         System.out.println("Average Cost per Rental: RM " + String.format("%.2f", averageRentalCost));
         System.out.println("Total Loyalty Points Earned: " + totalLoyaltyPointsEarned);
-        
         if (lastPaymentDate != null) {
             System.out.println("Last Payment Date: " + lastPaymentDate.toLocalDate());
         }
-        
         if (!preferredPaymentMethod.isEmpty()) {
             System.out.println("Preferred Payment Method: " + preferredPaymentMethod);
         }
-        
         if (!paymentMethodBreakdown.isEmpty()) {
             System.out.println("\nPayment Method Breakdown:");
-            paymentMethodBreakdown.forEach((method, amount) -> 
+            paymentMethodBreakdown.forEach((method, amount) ->
                 System.out.println("- " + method + ": RM " + String.format("%.2f", amount)));
         }
-        
         System.out.println("========================================================\n");
     }
 
     public void printDetailedSummary() {
         printSummary();
-        
         if (!paymentHistory.isEmpty()) {
             System.out.println("Payment History (Last 10):");
-            List<Double> recentPayments = paymentHistory.size() > 10 
+            List<Double> recentPayments = paymentHistory.size() > 10
                 ? paymentHistory.subList(paymentHistory.size() - 10, paymentHistory.size())
                 : paymentHistory;
-            
             for (int i = 0; i < recentPayments.size(); i++) {
                 System.out.println((i + 1) + ". RM " + String.format("%.2f", recentPayments.get(i)));
             }
-            
-            // Calculate statistics
+
             double maxPayment = Collections.max(paymentHistory);
             double minPayment = Collections.min(paymentHistory);
-            
+
             System.out.println("\nPayment Statistics:");
             System.out.println("Highest Payment: RM " + String.format("%.2f", maxPayment));
             System.out.println("Lowest Payment: RM " + String.format("%.2f", minPayment));
-        }
-    }
-
-    public String getSpendingTier() {
-        if (totalSpent >= 5000) {
-            return "PLATINUM";
-        } else if (totalSpent >= 2000) {
-            return "GOLD";
-        } else if (totalSpent >= 500) {
-            return "SILVER";
-        } else {
-            return "BRONZE";
         }
     }
 
@@ -133,20 +123,16 @@ public class PaymentSummary {
 
     // Setters
     public void setCustomerId(String customerId) { this.customerId = customerId; }
-    public void setTotalSpent(double totalSpent) { 
-        this.totalSpent = totalSpent; 
-        if (totalRentals > 0) {
-            this.averageRentalCost = this.totalSpent / this.totalRentals;
-        }
+    public void setTotalSpent(double totalSpent) {
+        this.totalSpent = totalSpent;
+        this.averageRentalCost = totalRentals > 0 ? totalSpent / totalRentals : 0;
     }
-    public void setTotalRentals(int totalRentals) { 
-        this.totalRentals = totalRentals; 
-        if (totalRentals > 0) {
-            this.averageRentalCost = this.totalSpent / this.totalRentals;
-        }
+    public void setTotalRentals(int totalRentals) {
+        this.totalRentals = totalRentals;
+        this.averageRentalCost = totalRentals > 0 ? totalSpent / totalRentals : 0;
     }
-    public void setTotalLoyaltyPointsEarned(int totalLoyaltyPointsEarned) { this.totalLoyaltyPointsEarned = totalLoyaltyPointsEarned; }
-    public void setLastPaymentDate(LocalDateTime lastPaymentDate) { this.lastPaymentDate = lastPaymentDate; }
+    public void setTotalLoyaltyPointsEarned(int points) { this.totalLoyaltyPointsEarned = points; }
+    public void setLastPaymentDate(LocalDateTime date) { this.lastPaymentDate = date; }
 
     @Override
     public String toString() {
@@ -156,7 +142,7 @@ public class PaymentSummary {
                 ", totalRentals=" + totalRentals +
                 ", averageRentalCost=" + averageRentalCost +
                 ", totalLoyaltyPointsEarned=" + totalLoyaltyPointsEarned +
-                ", spendingTier='" + getSpendingTier() + '\'' +
+                ", preferredPaymentMethod='" + preferredPaymentMethod + '\'' +
                 '}';
     }
 }

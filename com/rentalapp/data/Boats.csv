@@ -1,0 +1,11 @@
+id,category,vesselType,location,purpose,capacity,duration,basePrice,available
+B001,Boat,27' Island Hopper,Langkawi,Tour / Beach hop,10,4h,1600,true
+B002,Boat,30' Snorkel Boat,Redang,Tour / Snorkel,12,5h,2400,true
+B003,Boat,32' Private Day Boat,Redang,Family / Tour,12,6h,3200,true
+B004,Boat,35' Private Transfer Boat,Redang,Transfer / Tour,35,1.5h,1200,true
+B005,Boat,28' Island Hopper,Semporna,Tour / Photo,10,5h,2100,true
+B006,Boat,33' Fast Boat,Semporna,Tour / Snorkel,12,6h,3000,true
+B007,Boat,30' Reef Explorer,Semporna,Snorkel / Chill,10,5h,2600,true
+B008,Boat,29' Coves & Caves,Langkawi,Tour,10,4.5h,1900,true
+B009,Boat,31' Coastal Cruiser,Kuala Terengganu,Tour / Transfer,12,4h,2300,true
+B010,Boat,34' Family Day Boat,Redang,Tour / Picnic,14,6h,3500,true

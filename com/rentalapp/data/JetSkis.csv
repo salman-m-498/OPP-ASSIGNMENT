@@ -1,0 +1,11 @@
+id,category,vesselType,location,purpose,capacity,duration,basePrice,available
+J001,Jet Ski,Fun Ride (Short),Langkawi,Tour / Fun,2,20min,250,true
+J002,Jet Ski,Guided Coastal Hop,Langkawi,Tour,2,1h,550,true
+J003,Jet Ski,Sunset Jet Ski,Langkawi,Tour / Couple,2,1.5h,750,true
+J004,Jet Ski,Bronze Package,Langkawi,Tour,2,2h,550,true
+J005,Jet Ski,Premium Archipelago Tour,Langkawi,Adventure,2,4h,1200,true
+J006,Jet Ski,Half-Day Expedition,Langkawi,Adventure,2,4h,1600,true
+J007,Jet Ski,Fun Ride (Short),Port Dickson,Tour / Fun,2,20min,250,true
+J008,Jet Ski,Guided Bay Tour,Port Dickson,Tour,2,1h,500,true
+J009,Jet Ski,Pair Ride Bundle,Langkawi,Tour,2,1h,600,true
+J010,Jet Ski,Family Relay (3 skis),Langkawi,Group fun,6,2h,1500,true

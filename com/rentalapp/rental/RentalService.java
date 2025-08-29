@@ -1,307 +1,345 @@
 package com.rentalapp.rental;
 
-import com.rentalapp.vehicle.*;
+import com.rentalapp.vessel.*;
 import com.rentalapp.auth.Customer;
+import com.rentalapp.auth.MemberCustomer;
 import com.rentalapp.maintenance.MaintenanceManager;
 import com.rentalapp.maintenance.MaintenanceType;
 import com.rentalapp.payment.PaymentCalculator;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class RentalService {
-    private VehicleManager vehicleManager;
-    private MaintenanceManager maintenanceManager;
-    private List<RentalRecord> activeRentals;
-    private int rentalIdCounter;
-    
-    public RentalService(VehicleManager vehicleManager, MaintenanceManager maintenanceManager) {
-        this.vehicleManager = vehicleManager;
-        this.maintenanceManager = maintenanceManager;
-        this.activeRentals = new ArrayList<>();
-        this.rentalIdCounter = 1000;
-    }
+    private final VesselManager vesselManager;
+    private final MaintenanceManager maintenanceManager;
+    private final PaymentCalculator paymentCalculator;
 
-    public RentalRecord processRental(RentalRequest request, Customer customer) {
-        // Validate rental request
-        if (!validateRentalRequest(request)) {
-            return null;
-        }
-        
-        // Check vehicle availability
-        Vehicle vehicle = vehicleManager.getVehicleById(request.getVehicleId());
-        if (vehicle == null || !vehicle.isAvailable()) {
-            System.out.println("Vehicle is not available for rental.");
-            return null;
-        }
-        
-       // Create rental record 
-    String rentalId = "R" + (++rentalIdCounter);
-    RentalRecord rental = new RentalRecord(
-        rentalId,
-        customer.getCustomerId(),
-        request.getVehicleId(),
-        request.getPickupLocation(),
-        request.getPickupDate(),
-        request.getReturnDate(),
-        request.getRentalDays(),
-        0.0, // temporary cost 
-        vehicle.getModel(),
-        customer.getName()
+    private final List<RentalRecord> activeRentals = new ArrayList<>();
+    private final List<RentalRecord> completedRentals = new ArrayList<>();
+    private List<AddOn> availableAddOns = new ArrayList<>();
+    private int rentalIdCounter = 1000;
+    private final RentalHistory rentalHistory;
+
+    // Maintenance thresholds per vessel category
+    private static final Map<String, Integer> MAINTENANCE_THRESHOLDS = Map.of(
+        "yacht", 10,
+        "pontoon", 10,
+        "boat", 12,
+        "jet ski", 15,
+        "fishing charter", 10
     );
 
-       //Calculate total cost 
-       PaymentCalculator calculator = new PaymentCalculator();
-       double totalCost = calculator.calculateBaseAmount(rental);
-       rental.setTotalCost(totalCost);
-        
-        // Mark vehicle as rented
-        if (vehicleManager.rentVehicle(request.getVehicleId())) {
+    public RentalService(VesselManager vesselManager, MaintenanceManager maintenanceManager, RentalHistory rentalHistory) {
+        this.vesselManager = vesselManager;
+        this.maintenanceManager = maintenanceManager;
+        this.paymentCalculator = new PaymentCalculator();
+        this.rentalHistory = rentalHistory;
+    }
+
+    
+
+    // ================= ADD-ONS =================
+    public void loadAvailableAddOns(List<AddOn> addOns) {
+        this.availableAddOns = new ArrayList<>(addOns);
+    }
+
+    public List<AddOn> getAvailableAddOns() {
+        return new ArrayList<>(availableAddOns);
+    }
+
+    public void addAddOnToRental(RentalRecord rental, AddOn addOn) {
+        rental.addAddOn(addOn);
+        rental.setTotalCost(rental.getBasePrice() + rental.getTotalAddOnsCost());
+    }
+
+    // ================= RENTAL PROCESSING =================
+    public RentalRecord processRental(RentalRequest request, Customer customer) {
+        if (!validateRentalRequest(request)) return null;
+
+        Vessel vessel = vesselManager.getVesselById(request.getVesselId());
+        if (vessel == null || !vessel.isAvailable()) {
+            System.out.println("Vessel is not available for rental.");
+            return null;
+        }
+
+        String rentalId = "V" + (++rentalIdCounter);
+        double calculatedTotalCost = request.getTotalCost();
+
+        RentalRecord rental = new RentalRecord(
+            rentalId,
+            customer.getCustomerId(),
+            request.getVesselId(),
+            request.getPickupLocation(),
+            request.getScheduledStart(),
+            request.getScheduledEnd(),
+            request.getDuration(),
+            0.0,
+            calculatedTotalCost,
+            vessel.getVesselType(),
+            vessel.getVesselCategory(),
+            customer.getName()
+        );
+
+        // Calculate base price
+        double basePrice = vessel.getBasePrice();
+        if (customer instanceof MemberCustomer member) {
+        basePrice -= basePrice * (member.getDiscountRate() / 100.0);
+        }
+        double tax = basePrice * 0.06;
+
+        // Add-ons
+        double addOnTotal = 0.0;
+        if (request.getAddOns() != null) {
+            for (AddOn addon : request.getAddOns()) {
+                rental.addAddOn(addon);
+                addOnTotal += addon.getTotalPrice();
+            }
+        }
+
+        double totalCost = basePrice + tax  + addOnTotal;
+        rental.setBasePrice(basePrice);
+        rental.setTaxAmount(tax);
+        rental.setTotalCost(totalCost);
+
+        if (vesselManager.rentVessel(request.getVesselId())) {
             activeRentals.add(rental);
-            System.out.println("Rental processed successfully!");
+            System.out.println("Vessel rental processed successfully!");
+            System.out.println("Note: All rentals come with a certified captain for safety and navigation.");
             return rental;
         }
-        
         return null;
     }
-    
-    public boolean returnVehicle(String rentalId) {
-        RentalRecord rental = findActiveRental(rentalId);
+
+    public boolean extendRental(String rentalId, Duration additionalDuration) {
+        RentalRecord rental = findRental(rentalId, activeRentals);
         if (rental == null) {
             System.out.println("Active rental not found.");
             return false;
         }
-
-            // Mark vehicle as available again
-        if (vehicleManager.returnVehicle(rental.getVehicleId())) {
-            // Update rental record status
-            rental.setReturnDate(LocalDate.now());
-            rental.setStatus(RentalStatus.RETURNED);
-            
-            Vehicle vehicle = vehicleManager.getVehicleById(rental.getVehicleId());
-            if (vehicle != null) {
-            vehicle.incrementRentalCount();
-            checkAndScheduleMaintenance(vehicle); // Trigger maintenance if needed
-            }
-            // Remove from active rentals
-            activeRentals.remove(rental);
-            
-            System.out.println("Vehicle returned successfully!");
-            System.out.println("Rental ID: " + rentalId);
-            System.out.println("Total Cost: RM" + rental.getTotalCost());
-            
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean extendRental(String rentalId, int additionalDays) {
-        RentalRecord rental = findActiveRental(rentalId);
-        if (rental == null) {
-            System.out.println("Active rental not found.");
-            return false;
-        }
-
-        // Get vehicle to calculate additional cost
-        Vehicle vehicle = vehicleManager.getVehicleById(rental.getVehicleId());
-        if (vehicle == null) {
-            System.out.println("Vehicle not found.");
-            return false;
-        }
-
-        // Calculate additional cost
-         PaymentCalculator calculator = new PaymentCalculator();
-        double additionalCost = calculator.calculateExtensionCost(rental.getVehicleModel(),additionalDays);
-        
-        // Update rental record
-        rental.setRentalDays(rental.getRentalDays() + additionalDays);
-        rental.setReturnDate(rental.getReturnDate().plusDays(additionalDays));
+        rental.setScheduledEnd(rental.getScheduledEnd().plus(additionalDuration));
+        rental.setDuration(rental.getDuration().plus(additionalDuration));
+        double additionalCost = paymentCalculator.calculateExtensionCost(rental.getVesselCategory(), additionalDuration);
         rental.setTotalCost(rental.getTotalCost() + additionalCost);
-
-        System.out.println("Rental extended successfully!");
-        System.out.println("Additional days: " + additionalDays);
-        System.out.println("Additional cost: $" + additionalCost);
-        System.out.println("New total cost: $" + rental.getTotalCost());
-        
         return true;
     }
 
+    // ================= RENTAL COMPLETION =================
+    public boolean returnVessel(String rentalId) {
+        return completeRental(rentalId, RentalStatus.COMPLETED);
+    }
+
+    public boolean cancelRental(RentalRecord rental) {
+    if (rental == null) return false;
+
+    if (vesselManager.returnVessel(rental.getVesselId())) {
+        rental.setStatus(RentalStatus.CANCELLED);
+        rental.setActualEnd(LocalDateTime.now()); // record cancellation time
+
+        activeRentals.remove(rental);
+        completedRentals.add(rental); // keep in history as "cancelled"
+
+        // ✅ Reuse common history logic
+       addToRentalHistory(
+        rental,
+        null,   // use the one passed into cancelRental
+        rental.getPaymentMethod() != null ? rental.getPaymentMethod() : "N/A",
+        0
+        );
+
+
+    System.out.println("\nRental " + rental.getRentalId() + " has been cancelled. Vessel returned to availability.");
+    return true;
+    }
+    return false;
+     }
+
+    private boolean completeRental(String rentalId, RentalStatus finalStatus) {
+        RentalRecord rental = findRental(rentalId, activeRentals);
+        if (rental == null) {
+            System.out.println("Active rental not found.");
+            return false;
+        }
+
+        if (vesselManager.returnVessel(rental.getVesselId())) {
+            if (rental.getActualEnd() == null) {
+                rental.setActualEnd(LocalDateTime.now());
+            }
+            rental.setStatus(finalStatus);
+
+            Vessel vessel = vesselManager.getVesselById(rental.getVesselId());
+            if (vessel != null && finalStatus == RentalStatus.COMPLETED) {
+                vessel.incrementRentalCount();
+                checkAndScheduleMaintenance(vessel);
+            }
+
+            activeRentals.remove(rental);
+            if (finalStatus == RentalStatus.COMPLETED || finalStatus == RentalStatus.CANCELLED) {
+                completedRentals.add(rental);
+            }
+            System.out.println("Rental " + rentalId + " marked as " + finalStatus);
+            return true;
+        }
+        return false;
+    }
+
+    public void addToRentalHistory(RentalRecord rental, Customer customer,
+                               String paymentMethod, int loyaltyPoints) {
+    // Pick actualEnd if available, otherwise fall back to scheduledEnd
+    LocalDateTime actualEnd = rental.getActualEnd() != null
+            ? rental.getActualEnd()
+            : rental.getScheduledEnd();
+
+    // Recalculate duration based on actual return
+    Duration actualDuration = Duration.between(rental.getScheduledStart(), actualEnd);
+
+    RentalHistoryRecord historyRecord = new RentalHistoryRecord(
+            rental.getRentalId(),
+            rental.getCustomerId(),
+            rental.getCustomerName(),
+            rental.getVesselId(),
+            rental.getVesselType(),
+            rental.getVesselCategory(),
+            rental.getPickupLocation(),
+            rental.getScheduledStart(),
+            rental.getScheduledEnd(),
+            actualEnd,
+            actualDuration,
+            rental.getTotalCost(),
+            paymentMethod,
+            rental.getStatus().toString(),
+            loyaltyPoints
+    );
+
+    rentalHistory.addRentalRecord(historyRecord);
+
+}
+
+    // ================= QUERIES =================
     public List<RentalRecord> getActiveRentals() {
         return new ArrayList<>(activeRentals);
     }
 
-    public List<RentalRecord> getCustomerRentals(String customerId) {
-        List<RentalRecord> customerRentals = new ArrayList<>();
-        for (RentalRecord rental : activeRentals) {
-            if (rental.getCustomerId().equals(customerId)) {
-                customerRentals.add(rental);
-            }
+    public List<RentalRecord> getCompletedRentals() {
+        return new ArrayList<>(completedRentals);
+    }
+
+    public int getCompletedRentalsCount(String customerId) {
+    return (int) completedRentals.stream()
+            .filter(r -> r.getCustomerId().equals(customerId))
+            .filter(r -> r.getStatus() == RentalStatus.COMPLETED) // only count finished rentals, not cancelled
+            .count();
         }
-        return customerRentals;
+
+    public List<RentalRecord> getAllRentals() {
+        List<RentalRecord> all = new ArrayList<>(activeRentals);
+        all.addAll(completedRentals);
+        return all;
     }
 
+    public List<RentalRecord> getCustomerActiveRentals(String customerId) {
+        return filterRentals(activeRentals, r ->
+            r.getCustomerId().equals(customerId) && r.getStatus() == RentalStatus.ACTIVE
+        );
+    }
+
+   public List<RentalRecord> getCustomerFinishedRentals(String customerId) {
+    return filterRentals(completedRentals, r ->
+        r.getCustomerId().equals(customerId) &&
+        (r.getStatus() == RentalStatus.COMPLETED || r.getStatus() == RentalStatus.CANCELLED)
+    );
+}
     public RentalRecord getRentalById(String rentalId) {
-        return findActiveRental(rentalId);
+        RentalRecord rental = findRental(rentalId, activeRentals);
+        return rental != null ? rental : findRental(rentalId, completedRentals);
     }
 
+    public List<RentalRecord> getOverdueRentals() {
+        return filterRentals(activeRentals, RentalRecord::isOverdue);
+    }
+
+    public double getTotalRevenue() {
+        return activeRentals.stream().mapToDouble(RentalRecord::getTotalCost).sum();
+    }
+
+    public RentalHistory getRentalHistory() {
+    return this.rentalHistory; 
+    }
+
+    public List<RentalHistoryRecord> getCustomerRentalHistory(String customerId) {
+        return rentalHistory.getCustomerHistory(customerId);
+    }
+
+    // ================= DISPLAY =================
     public void displayRentalSummary(String rentalId) {
-        RentalRecord rental = findActiveRental(rentalId);
+        RentalRecord rental = getRentalById(rentalId);
         if (rental == null) {
             System.out.println("Rental not found.");
             return;
         }
-
-        System.out.println("\n==================== RENTAL SUMMARY ====================");
-        System.out.println("Rental ID: " + rental.getRentalId());
-        System.out.println("Customer: " + rental.getCustomerName());
-        System.out.println("Vehicle: " + rental.getVehicleModel());
-        System.out.println("Pickup Location: " + rental.getPickupLocation());
-        System.out.println("Pickup Date: " + rental.getPickupDate());
-        System.out.println("Return Date: " + rental.getReturnDate());
-        System.out.println("Rental Days: " + rental.getRentalDays());
-        System.out.println("Total Cost: $" + rental.getTotalCost());
-        System.out.println("Status: " + rental.getStatus());
-        System.out.println("========================================================\n");
+        rental.printDetails();
     }
 
     public void displayAllActiveRentals() {
-        if (activeRentals.isEmpty()) {
-            System.out.println("No active rentals found.");
-            return;
-        }
+    System.out.println("\n==================== ACTIVE VESSEL RENTALS ====================");
 
-        System.out.println("\n==================== ACTIVE RENTALS ====================");
-        for (RentalRecord rental : activeRentals) {
-            System.out.println("ID: " + rental.getRentalId() + 
-                             " | Customer: " + rental.getCustomerName() + 
-                             " | Vehicle: " + rental.getVehicleModel() + 
-                             " | Days: " + rental.getRentalDays() + 
-                             " | Cost: RM" + rental.getTotalCost());
-        }
-        System.out.println("========================================================\n");
+    List<RentalRecord> activeList = activeRentals.stream()
+            .filter(r -> r.getStatus() == RentalStatus.ACTIVE)
+            .toList();
+
+    if (activeList.isEmpty()) {
+        System.out.println("No active vessel rentals found.");
+    } else {
+        activeList.forEach(r -> System.out.println(r.toString()));
     }
 
-    public double getTotalRevenue() {
-        double totalRevenue = 0;
-        for (RentalRecord rental : activeRentals) {
-            totalRevenue += rental.getTotalCost();
-        }
-        return totalRevenue;
-    }
-
-    public List<RentalRecord> getOverdueRentals() {
-        List<RentalRecord> overdueRentals = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-        
-        for (RentalRecord rental : activeRentals) {
-            if (rental.getReturnDate().isBefore(today)) {
-                overdueRentals.add(rental);
-            }
-        }
-        
-        return overdueRentals;
-    }
-
-    public boolean cancelRental(String rentalId) {
-        RentalRecord rental = findActiveRental(rentalId);
-        if (rental == null) {
-            System.out.println("Active rental not found.");
-            return false;
-        }
-
-        // Check if rental can be cancelled (e.g., within 24 hours of pickup)
-        LocalDate today = LocalDate.now();
-        if (rental.getPickupDate().isBefore(today.plusDays(1))) {
-            System.out.println("Cannot cancel rental within 24 hours of pickup date.");
-            return false;
-        }
-
-        // Return vehicle to available status
-        if (vehicleManager.returnVehicle(rental.getVehicleId())) {
-            rental.setStatus(RentalStatus.CANCELLED);
-            activeRentals.remove(rental);
-            
-            System.out.println("Rental cancelled successfully!");
-            System.out.println("Rental ID: " + rentalId);
-            
-            return true;
-        }
-
-        return false;
-    }
-
-    // Private helper methods
-    private RentalRecord findActiveRental(String rentalId) {
-        for (RentalRecord rental : activeRentals) {
-            if (rental.getRentalId().equals(rentalId)) {
-                return rental;
-            }
-        }
-        return null;
-    }
-
-    private void checkAndScheduleMaintenance(Vehicle vehicle) {
-    int threshold = vehicle.getCategory().equalsIgnoreCase("Economy") ? 20 : 10;
-
-    if (vehicle.getRentalCount() >= threshold) {
-        vehicle.setAvailable(false);  // Set status as unavailable for maintenance
-        vehicle.resetRentalCount();   // Reset rental count
-        maintenanceManager.scheduleMaintenance(
-            vehicle.getId(),
-            vehicle.getModel(),
-            MaintenanceType.GENERAL_INSPECTION,
-            LocalDate.now().plusDays(1),  // Schedule for tomorrow
-            "Auto-scheduled after " + threshold + " rentals."
-        );
-        System.out.println("Vehicle " + vehicle.getId() + " auto-flagged for maintenance.");
-    }
+    System.out.println("==============================================================\n");
 }
 
+    // ================= HELPERS =================
+    private RentalRecord findRental(String rentalId, List<RentalRecord> rentals) {
+        return rentals.stream()
+            .filter(r -> r.getRentalId().equals(rentalId))
+            .findFirst()
+            .orElse(null);
+    }
+
+    private List<RentalRecord> filterRentals(List<RentalRecord> source, java.util.function.Predicate<RentalRecord> filter) {
+        List<RentalRecord> results = new ArrayList<>();
+        for (RentalRecord rental : source) {
+            if (filter.test(rental)) {
+                results.add(rental);
+            }
+        }
+        return results;
+    }
+
+    private void checkAndScheduleMaintenance(Vessel vessel) {
+        int threshold = MAINTENANCE_THRESHOLDS.getOrDefault(vessel.getVesselCategory().toLowerCase(), 12);
+        if (vessel.getRentalCount() >= threshold) {
+            vessel.setAvailable(false);
+            vessel.resetRentalCount();
+            maintenanceManager.scheduleMaintenance(
+                vessel.getId(),
+                vessel.getVesselType(),
+                MaintenanceType.GENERAL_INSPECTION,
+                LocalDate.now().plusDays(1),
+                "Auto-scheduled after " + threshold + " rentals. Marine safety inspection required."
+            );
+            System.out.println("⚠ Vessel " + vessel.getId() + " auto-flagged for maintenance.");
+        }
+    }
 
     private boolean validateRentalRequest(RentalRequest request) {
-        if (request == null) {
-            System.out.println("Invalid rental request.");
-            return false;
-        }
-
-        if (request.getVehicleId() == null || request.getVehicleId().trim().isEmpty()) {
-            System.out.println("Vehicle ID is required.");
-            return false;
-        }
-
-        if (request.getPickupLocation() == null || request.getPickupLocation().trim().isEmpty()) {
-            System.out.println("Pickup location is required.");
-            return false;
-        }
-
-        if (request.getPickupDate() == null) {
-            System.out.println("Pickup date is required.");
-            return false;
-        }
-
-        if (request.getReturnDate() == null) {
-            System.out.println("Return date is required.");
-            return false;
-        }
-
-        if (request.getPickupDate().isAfter(request.getReturnDate())) {
-            System.out.println("Pickup date cannot be after return date.");
-            return false;
-        }
-
-        if (request.getPickupDate().isBefore(LocalDate.now())) {
-            System.out.println("Pickup date cannot be in the past.");
-            return false;
-        }
-
-        if (request.getRentalDays() <= 0) {
-            System.out.println("Rental days must be greater than 0.");
-            return false;
-        }
-
-        return true;
+        return request != null
+            && request.getVesselId() != null && !request.getVesselId().isBlank()
+            && request.getPickupLocation() != null && !request.getPickupLocation().isBlank()
+            && request.getScheduledStart() != null && request.getScheduledEnd() != null
+            && !request.getScheduledStart().isAfter(request.getScheduledEnd())
+            && !request.getScheduledStart().isBefore(LocalDateTime.now());
     }
+
+    
 }
-
-

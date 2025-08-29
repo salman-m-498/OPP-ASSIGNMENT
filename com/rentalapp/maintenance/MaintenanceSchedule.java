@@ -3,25 +3,25 @@ package com.rentalapp.maintenance;
 import java.time.LocalDate;
 
 public class MaintenanceSchedule {
-    private String vehicleId;
-    private String vehicleModel;
+    private String vesselId;
+    private String vesselType;
     private LocalDate scheduledDate;
     private MaintenanceType type;
     private String description;
 
-    public MaintenanceSchedule(String vehicleId, String vehicleModel, 
+    public MaintenanceSchedule(String vesselId, String vesselType, 
                                MaintenanceType type, LocalDate scheduledDate, 
                                String description) {
-        this.vehicleId = vehicleId;
-        this.vehicleModel = vehicleModel;
+        this.vesselId = vesselId;
+        this.vesselType = vesselType;
         this.type = type;
         this.scheduledDate = scheduledDate;
         this.description = description;
     }
 
     // Getters
-    public String getVehicleId() { return vehicleId; }
-    public String getVehicleModel() { return vehicleModel; }
+    public String getVesselId() { return vesselId; }
+    public String getVesselType() { return vesselType; }
     public LocalDate getScheduledDate() { return scheduledDate; }
     public MaintenanceType getType() { return type; }
     public String getDescription() { return description; }
@@ -30,6 +30,6 @@ public class MaintenanceSchedule {
     @Override
     public String toString() {
         return String.format("Scheduled Maintenance: %s (%s) on %s [%s]",
-                vehicleModel, vehicleId, scheduledDate, type);
+                vesselType, vesselId, scheduledDate, type);
     }
 }

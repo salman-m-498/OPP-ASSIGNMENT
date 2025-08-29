@@ -53,35 +53,58 @@ public class LoyaltyAccount {
 
     public int getPointsToVip() {
         if (vipMember) {
-            return 0; // Already vip
-        } else if (currentPoints < 500) {
-            return 500 - currentPoints;
+            return 0; // Already VIP
+        } else if (totalRentals >= 5) {
+            return 0; // Qualified through rental count
+        } else if (currentPoints < 3000) {
+            return 3000 - currentPoints;
+        }
+        return 0;
+    }
+
+     public int getRentalsToVip() {
+        if (vipMember) {
+            return 0; // Already VIP
+        } else if (currentPoints >= 3000) {
+            return 0; // Qualified through points
+        } else if (totalRentals < 5) {
+            return 5 - totalRentals;
         }
         return 0;
     }
 
 
-    public void printAccountSummary() {
-        System.out.println("\n================ LOYALTY ACCOUNT SUMMARY ================");
+     public void printAccountSummary() {
+        System.out.println("\n================ VESSEL RENTAL LOYALTY ACCOUNT ================");
         System.out.println("Customer: " + customerName);
         System.out.println("Customer ID: " + customerId);
         System.out.println("Current Points: " + currentPoints);
-        System.out.println("Total Rentals: " + totalRentals);
+        System.out.println("Total Vessel Rentals: " + totalRentals);
+        System.out.println("Member Status: " + (vipMember ? "VIP MEMBER" : "STANDARD MEMBER"));
         System.out.println("Account Created: " + accountCreatedDate.toLocalDate());
         
-        if (vipMember && vipUpgradeDate != null) {
-            System.out.println("VIP Since: " + vipUpgradeDate.toLocalDate());
+        if (vipMember) {
+            if (vipUpgradeDate != null) {
+                System.out.println("VIP Since: " + vipUpgradeDate.toLocalDate());
+            }
+            System.out.println("VIP Benefits: +15% points, 7% booking discount, priority booking");
+        } else {
+            int pointsNeeded = getPointsToVip();
+            int rentalsNeeded = getRentalsToVip();
+            
+            if (pointsNeeded > 0 && rentalsNeeded > 0) {
+                System.out.println("VIP Requirements: " + pointsNeeded + " more points OR " + 
+                                 rentalsNeeded + " more vessel rentals");
+            } else {
+                System.out.println("Congratulations! You're eligible for VIP upgrade!");
+            }
         }
         
         if (lastPointsEarned != null) {
             System.out.println("Last Points Earned: " + lastPointsEarned.toLocalDate());
         }
         
-        if (!vipMember) {
-            System.out.println("Points to VIP: " + getPointsToVip());
-        }
-        
-        System.out.println("=========================================================\n");
+        System.out.println("================================================================\n");
     }
 
     // Getters
@@ -108,7 +131,7 @@ public class LoyaltyAccount {
                 ", customerName='" + customerName + '\'' +
                 ", currentPoints=" + currentPoints +
                 ", vipMember=" + vipMember +
-                ", totalRentals=" + totalRentals +
+                ", totalVesselRentals=" + totalRentals +
                 '}';
     }
 
