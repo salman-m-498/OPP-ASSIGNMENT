@@ -1,11 +1,8 @@
 package com.rentalapp.rental;
-
-import com.rentalapp.vessel.VesselManager;
 import com.rentalapp.auth.Customer;
 import com.rentalapp.payment.PaymentManager;
 import com.rentalapp.payment.Receipt;
 import com.rentalapp.loyalty.LoyaltyPointManager;
-import com.rentalapp.maintenance.MaintenanceManager;
 import com.rentalapp.payment.PaymentCalculator;
 
 
@@ -20,23 +17,20 @@ public class RentalManager {
     private final LoyaltyPointManager loyaltyPointManager;
     private final PaymentCalculator paymentCalculator;
     private final Map<String, Customer> customerDatabase;
-    private final MaintenanceManager maintenanceManager;
+    
 
     private final Scanner scanner = new Scanner(System.in);
 
-    // ✅ New constructor: everything is passed in, nothing new() inside
     public RentalManager(RentalService rentalService,
                          RentalHistory rentalHistory,
                          PaymentCalculator paymentCalculator,
                          PaymentManager paymentManager,
-                         LoyaltyPointManager loyaltyPointManager,
-                         MaintenanceManager maintenanceManager) {
+                         LoyaltyPointManager loyaltyPointManager) {
         this.rentalService = rentalService;
         this.rentalHistory = rentalHistory;
         this.paymentCalculator = paymentCalculator;
         this.paymentManager = paymentManager;
         this.loyaltyPointManager = loyaltyPointManager;
-        this.maintenanceManager = maintenanceManager;
         this.customerDatabase = new HashMap<>();
     }
 
@@ -221,7 +215,7 @@ public class RentalManager {
         return hoursUntilStart >= 48;
     }
 
-    // If start is unknown, be conservative (block) or return true per your business rule
+    // If start is unknown, be conservative (block) or return true 
     return false;
 }
 
@@ -324,7 +318,7 @@ public class RentalManager {
                         rental,
                         customer,
                         overdueDuration,
-                        true,                // isLateReturn = true
+                        true,                
                         paymentMethod,
                         maskedCardNumber,
                         eWalletPhoneNumber

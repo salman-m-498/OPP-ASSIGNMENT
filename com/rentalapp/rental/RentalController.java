@@ -5,7 +5,6 @@ import com.rentalapp.auth.MemberCustomer;
 import com.rentalapp.loyalty.LoyaltyAccount;
 import com.rentalapp.loyalty.LoyaltyPointManager;
 import com.rentalapp.payment.PaymentManager;
-import com.rentalapp.payment.PaymentSummary;
 import com.rentalapp.payment.Receipt;
 import com.rentalapp.vessel.Vessel;
 import com.rentalapp.vessel.VesselManager;
@@ -622,7 +621,7 @@ public void processVesselReturn(Customer customer) {
 
         Duration extensionDuration = Duration.ofHours(additionalHours);
 
-        // ✅ FIX: Create PaymentCalculator instance or use dependency injection
+        // FIX: Create PaymentCalculator instance or use dependency injection
         if (paymentCalculator == null) {
             paymentCalculator = new PaymentCalculator();
         }
@@ -640,7 +639,7 @@ public void processVesselReturn(Customer customer) {
             return;
         }
 
-        // ✅ Ask payment method
+        // Ask payment method
         PaymentInput paymentInput = collectPaymentInput(extensionCost);
 
         Receipt extensionReceipt = paymentManager.processExtensionPayment(

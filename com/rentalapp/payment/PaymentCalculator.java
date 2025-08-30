@@ -4,7 +4,6 @@ import com.rentalapp.rental.RentalRecord;
 import com.rentalapp.auth.Customer;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
 
 public class PaymentCalculator {
 
@@ -72,7 +71,7 @@ public class PaymentCalculator {
         else if (lowerCategory.contains("pontoon")) hourlyRate = 250.0;
         else if (lowerCategory.contains("boat")) hourlyRate = 200.0;
 
-        return hourlyRate * additionalDuration.toHours() * 1.06; // including 6% tax
+        return hourlyRate * additionalDuration.toHours() * 1.08; // including 8% tax
     }
 
 

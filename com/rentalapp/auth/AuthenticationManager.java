@@ -3,7 +3,6 @@ package com.rentalapp.auth;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -19,7 +18,7 @@ public class AuthenticationManager {
     private static final Pattern EMAIL_PATTERN = 
         Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
     private static final Pattern PHONE_PATTERN =
-        Pattern.compile("^(\\+60|0)1\\d{8,9}$");
+        Pattern.compile("^(\\+60|0)1\\d{8,15}$");
     private static final Pattern IC_PATTERN = Pattern.compile("^\\d{6}-\\d{2}-\\d{4}$");
     
     public AuthenticationManager() {

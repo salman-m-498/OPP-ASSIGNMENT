@@ -17,14 +17,14 @@ public class RentalRecord {
     private String vesselCategory; 
     private String customerName;
 
-    private LocalDateTime scheduledStart;   // when rental starts
-    private LocalDateTime scheduledEnd;     // when rental should end
-    private LocalDateTime actualEnd;        // when vessel actually returned
+    private LocalDateTime scheduledStart;   
+    private LocalDateTime scheduledEnd;     
+    private LocalDateTime actualEnd;        
 
-    private Duration duration;              // rental duration (hours/minutes)
+    private Duration duration;              
     private double basePrice;
-    private double totalCost;               // final total cost 
-    private double taxAmount;               // Store tax amount separately
+    private double totalCost;               
+    private double taxAmount;               
     private List<AddOn> addOns = new ArrayList<>();
     private Review review;  
     private double damageFee;
@@ -44,7 +44,7 @@ public class RentalRecord {
         this.duration = duration;
         this.basePrice = basePrice;
         this.totalCost = totalCost;
-        this.taxAmount = 0.0; // Initialize tax amount
+        this.taxAmount = 0.0; 
         this.status = RentalStatus.ACTIVE;
         this.vesselType = vesselType;
         this.vesselCategory = vesselCategory;
@@ -101,8 +101,6 @@ public class RentalRecord {
     // ================= Utility Methods =================
     public void addAddOn(AddOn addOn) {
         this.addOns.add(addOn);
-        // Don't recalculate automatically - let the service handle total cost calculation
-        // recalcTotalCost(); // Remove this line
     }
 
     public double getTotalAddOnsCost() {
@@ -125,7 +123,7 @@ public class RentalRecord {
         return basePrice + taxAmount  + getTotalAddOnsCost() + getTotalExtensionFee() + damageFee;
     }
 
-    // Method to recalculate total cost (should only be called when necessary)
+    // Method to recalculate total cost 
     public void recalculateTotalCost() {
         this.totalCost = calculateTotalCost();
     }

@@ -141,10 +141,9 @@ public class RentalService {
         activeRentals.remove(rental);
         completedRentals.add(rental); // keep in history as "cancelled"
 
-        // ✅ Reuse common history logic
        addToRentalHistory(
         rental,
-        null,   // use the one passed into cancelRental
+        null,   
         rental.getPaymentMethod() != null ? rental.getPaymentMethod() : "N/A",
         0
         );

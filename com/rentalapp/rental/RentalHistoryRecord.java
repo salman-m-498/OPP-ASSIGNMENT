@@ -31,7 +31,7 @@ public class RentalHistoryRecord {
     String location,
     LocalDateTime scheduledStart,
     LocalDateTime scheduledEnd,
-    LocalDateTime actualEnd,   // <-- NEW
+    LocalDateTime actualEnd,   
     Duration duration,
     double totalAmount,
     String paymentMethod,
@@ -47,7 +47,7 @@ public class RentalHistoryRecord {
     this.location = location;
     this.scheduledStart = scheduledStart;
     this.scheduledEnd = scheduledEnd;
-    this.actualEnd = actualEnd;             // ✅ store it
+    this.actualEnd = actualEnd;             
     this.duration = duration;
     this.totalAmount = totalAmount;
     this.paymentMethod = paymentMethod;

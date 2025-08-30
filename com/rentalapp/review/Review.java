@@ -8,7 +8,7 @@ public class Review {
     private String customerId;
     private String rentalId;
     private String vesselType;
-    private int rating; // 1–5 stars
+    private int rating; // 1–5 
     private String comment;
     private LocalDateTime createdAt;
 

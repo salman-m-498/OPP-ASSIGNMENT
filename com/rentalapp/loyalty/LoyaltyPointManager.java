@@ -1,6 +1,4 @@
 package com.rentalapp.loyalty;
-
-import com.rentalapp.auth.Customer;
 import com.rentalapp.auth.MemberCustomer;
 
 import java.time.LocalDateTime;
@@ -21,6 +19,14 @@ public class LoyaltyPointManager {
         this.transactions = new ArrayList<>();
         this.transactionIdCounter = 1;
     }
+
+    public static int getVipThresholdPoints() {
+    return VIP_THRESHOLD_POINTS;
+    }
+
+   public static int getVipThresholdRentals() {
+    return VIP_THRESHOLD_RENTALS;
+}
 
     public LoyaltyAccount createLoyaltyAccount(String customerId, String customerName) {
         LoyaltyAccount account = new LoyaltyAccount(customerId, customerName);
@@ -328,30 +334,24 @@ public class LoyaltyPointManager {
         return rewards;
     }
 
-    public void displayRewardsMenu() {
+    public void displayRewardsMenu(String customerId) {
+        LoyaltyAccount account = loyaltyAccounts.get(customerId);
         System.out.println("\n==================== REWARDS MENU ====================");
         List<String> rewards = getAvailableRewards();
         for (int i = 0; i < rewards.size(); i++) {
             System.out.println((i + 1) + ". " + rewards.get(i));
         }
+        if (account != null && account.isVipMember()) {
         System.out.println("\nVIP Benefits (after 5 rentals OR 3,000 pts):");
         System.out.println("+15% points on each rental");
         System.out.println("Extra 7% off all bookings");
         System.out.println("Priority booking during peak seasons");
         System.out.println("Birthday-month bonus: 500 pts");
         System.out.println("=====================================================================\n");
-    }
+     } else {
+    System.out.println("You are not a VIP yet. Earn more points or complete more rentals to unlock benefits.");}
+}
 
-    public void displayVesselPointCategories() {
-        System.out.println("\n==================== VESSEL RENTAL POINTS ====================");
-        System.out.println("Jet Ski: 40 pts per rental");
-        System.out.println("Boat: 175 pts per rental");
-        System.out.println("Pontoon: 140 pts per rental");
-        System.out.println("Yacht: 500 pts per rental");
-        System.out.println("Superyacht: 750 pts per rental");
-        System.out.println("Fishing Charter: 165 pts per rental");
-        System.out.println("===============================================================\n");
-    }
 
      public boolean isEligibleForVip(LoyaltyAccount account) {
      return !account.isVipMember() && 
@@ -382,3 +382,4 @@ public class LoyaltyPointManager {
         return totalPoints / transactions.size();
     }
 }
+

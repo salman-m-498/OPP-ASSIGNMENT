@@ -1,7 +1,5 @@
 package com.rentalapp.auth;
 
-import java.time.LocalDateTime;
-
 public class NonMemberCustomer extends Customer {
     private boolean eligibleForMembership;
     
@@ -29,7 +27,6 @@ public class NonMemberCustomer extends Customer {
     @Override
     public void addLoyaltyPoints(int points) {
         // Non-members don't accumulate loyalty points
-        // Could potentially track for membership eligibility
         return;
     }
     

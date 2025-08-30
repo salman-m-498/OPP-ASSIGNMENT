@@ -35,14 +35,12 @@ public Receipt processPayment(RentalRecord rental, Customer customer,
         addOnsAmount = rental.getAddOns().stream().mapToDouble(AddOn::getTotalPrice).sum();
     }
 
-    // Make base amount come from finalAmount so Base + AddOns = Final (avoid mismatches)
     double baseAmount = finalAmount - addOnsAmount;
     if (baseAmount < 0) baseAmount = 0.0;
 
    
     int loyaltyPointsEarned = 0;
     if (customer instanceof MemberCustomer) {
-        // compute using the same source of truth used elsewhere
         loyaltyPointsEarned = loyaltyPointManager.getPointsForVessel(rental.getVesselCategory());
         LoyaltyAccount acct = loyaltyPointManager.getLoyaltyAccount(customer.getCustomerId());
         if (acct != null && acct.isVipMember()) {
@@ -62,17 +60,17 @@ public Receipt processPayment(RentalRecord rental, Customer customer,
             rental.getDuration(),
             baseAmount,
             addOnsAmount,
-            0.0,               // memberDiscount (we already applied it when computing rental total)
+            0.0,               
             finalAmount,
             paymentMethod,
             cardNumber,
             eWalletPhone,
             LocalDateTime.now(),
-            loyaltyPointsEarned, // record expected points for reporting; do NOT credit account here
+            loyaltyPointsEarned, 
             rental.getAddOns()
     );
 
-    // Use the finalAmount computed above — no re-calculation or double-discounting
+    // Use the finalAmount 
     if (processPaymentGateway(finalAmount, paymentMethod)) {
         customer.addToTotalSpent(finalAmount);
         receipts.add(receipt);
@@ -115,16 +113,16 @@ public Receipt processPayment(RentalRecord rental, Customer customer,
         originalReceipt.getVesselType(),
         originalReceipt.getVesselCategory(),
         originalReceipt.getDuration(),
-        0,                          // baseAmount not needed
-        0,                          // addOnsAmount not needed
-        0,                          // memberDiscount not needed
-        -refundAmount,              // negative amount for refund
+        0,                          
+        0,                          
+        0,                          
+        -refundAmount,              
         paymentMethod,
         maskedCardNumber,
         eWalletPhoneNumber,
         LocalDateTime.now(),
-        -originalReceipt.getLoyaltyPointsEarned(), // deduct loyalty points
-        new ArrayList<>()           // no add-ons in refund
+        -originalReceipt.getLoyaltyPointsEarned(), 
+        new ArrayList<>()           
     );
 
     // Process refund through gateway
@@ -164,7 +162,7 @@ public Receipt processCustomPayment(
 
     String receiptId = "CUST" + (++receiptCounter);
 
-    // ✅ If rental == null → membership upgrade or other custom fee
+    // If rental == null → membership upgrade or other custom fee
     String rentalId, vesselId, vesselType, vesselCategory;
     Duration duration;
     String description;
@@ -255,7 +253,7 @@ public Receipt processCustomPayment(
     public double calculateTotalRevenue() {
         double totalRevenue = 0;
         for (Receipt receipt : receipts) {
-            if (receipt.getFinalAmount() > 0) { // Only count positive amounts (not refunds)
+            if (receipt.getFinalAmount() > 0) { 
                 totalRevenue += receipt.getFinalAmount();
             }
         }
@@ -351,12 +349,6 @@ public void updateReceiptLoyaltyPoints(String rentalId, int loyaltyPoints) {
     
     /**
  * Process extension or late return payment
- * 
- * @param rental The rental record
- * @param customer The customer making the payment
- * @param additionalDuration Extra time being charged (can represent late return or planned extension)
- * @param isLateReturn true if this is a late return, false if it’s a normal extension
- * @return Receipt for the transaction
  */
 public Receipt processExtensionPayment(
         RentalRecord rental,
@@ -389,19 +381,19 @@ public Receipt processExtensionPayment(
         customer.getCustomerId(),
         customer.getName(),
         rental.getVesselId(),
-        type,                           // vesselType label
+        type,                           
         rental.getVesselCategory(),
         additionalDuration,
-        extensionCost,                  // baseAmount
-        0,                              // addOnsAmount
-        0,                              // memberDiscount
-        extensionCost,                  // finalAmount
+        extensionCost,                  
+        0,                              
+        0,                             
+        extensionCost,                  
         paymentMethod,
-        maskedCardNumber,               // card or null
-        eWalletPhoneNumber,             // e-wallet or null
+        maskedCardNumber,               
+        eWalletPhoneNumber,             
         LocalDateTime.now(),
         loyaltyPointsEarned,
-        new ArrayList<>()               // no add-ons
+        new ArrayList<>()               
     );
 
     // Process payment
@@ -447,15 +439,15 @@ public Receipt processExtensionPayment(
         "Additional Charge",
         rental.getVesselCategory(),
         Duration.ZERO,
-        amount,                 // baseAmount
-        0,                      // addOnsAmount
-        0,                      // memberDiscount
-        amount,                 // finalAmount
+        amount,                 
+        0,                      
+        0,                      
+        amount,                 
         paymentMethod,
         maskedCardNumber,
         eWalletPhoneNumber,
         LocalDateTime.now(),
-        0,                      // no loyalty points for damage charge by default
+        0,                      
         new ArrayList<>()
     );
 

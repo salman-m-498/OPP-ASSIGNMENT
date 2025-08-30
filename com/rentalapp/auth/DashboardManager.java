@@ -33,7 +33,6 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 
 public class DashboardManager {
-    private Scanner scanner;
     private RentalController rentalController;
     private VesselManager  vesselManager;
     private PaymentManager paymentManager;
@@ -45,11 +44,11 @@ public class DashboardManager {
     private final AuthenticationManager authManager;
     private PaymentCalculator paymentCalculator;
     private RentalHistory rentalHistory;
+    private final Scanner scanner = new Scanner(System.in); 
 
     
     public DashboardManager(AuthenticationManager authManager) {
         this.authManager = authManager;
-        this.scanner = new Scanner(System.in);
         
         // Initialize managers
         this.vesselManager = new VesselManager();
@@ -60,17 +59,17 @@ public class DashboardManager {
         this.reviewManager = new ReviewManager(loyaltyPointManager);
         this.paymentCalculator = new PaymentCalculator();
         this.rentalService = new RentalService(vesselManager, maintenanceManager, rentalHistory);
-        this.rentalManager = new RentalManager(rentalService,rentalHistory,paymentCalculator,paymentManager,loyaltyPointManager,maintenanceManager);
+        this.rentalManager = new RentalManager(rentalService,rentalHistory,paymentCalculator,paymentManager,loyaltyPointManager);
         
         // Initialize rental controller
        this.rentalController = new RentalController(
-    rentalService,
-    paymentManager,
-    paymentCalculator,
-    vesselManager,   // vesselManager
-    rentalManager,
-    loyaltyPointManager   // rentalManager
-);
+       rentalService,
+       paymentManager,
+       paymentCalculator,
+       vesselManager,   
+       rentalManager,
+       loyaltyPointManager   
+       );
     
     }
     
@@ -1625,8 +1624,8 @@ private void showLoyaltyInfo(MemberCustomer customer) {
 
     // Ensure loyalty account exists
     LoyaltyAccount account = loyaltyPointManager.getLoyaltyAccount(customer.getCustomerId());
-    if (account == null) {
-        account = loyaltyPointManager.createLoyaltyAccount(customer.getCustomerId(), customer.getName());
+   if (account != null && account.isVipMember() && !"VIP".equals(customer.getMembershipTier())) {
+       customer.setMembershipTier("VIP");
     }
 
     loyaltyPointManager.displayLoyaltyStatus(customer.getCustomerId());
@@ -1642,7 +1641,7 @@ private void showLoyaltyInfo(MemberCustomer customer) {
     }
 
     //  Show rewards menu
-    loyaltyPointManager.displayRewardsMenu();
+    loyaltyPointManager.displayRewardsMenu(customer.getCustomerId());
 
     System.out.print("Would you like to redeem a reward? (y/n): ");
     String choice = scanner.nextLine().trim().toLowerCase();
@@ -1718,10 +1717,7 @@ private int extractPointsCost(String rewardText) {
         return;
     }
 
-    // ✅ Use your existing payment input function
     PaymentInput paymentInput = collectPaymentInput(MEMBERSHIP_FEE);
-
-    // ✅ Process membership payment (no rental, so pass null)
     Receipt receipt = paymentManager.processCustomPayment(
             null,
             customer,
@@ -1739,7 +1735,7 @@ private int extractPointsCost(String rewardText) {
 
     showLoadingMessage("Processing membership upgrade...");
 
-    // ✅ Upgrade customer
+    // Upgrade customer
     String membershipId = authManager.generateMembershipId();
     MemberCustomer newMember = customer.convertToMember(membershipId);
 
@@ -1834,8 +1830,6 @@ private int extractPointsCost(String rewardText) {
         pauseForUser();
         return;
     }
-
-    Scanner scanner = new Scanner(System.in);
     String choice;
 
     do {
@@ -1893,7 +1887,6 @@ private int extractPointsCost(String rewardText) {
 
    // Update personal information
    private void updatePersonalInfo(User user) {
-    Scanner scanner = new Scanner(System.in);
     clearScreen();
     System.out.println("UPDATE PERSONAL INFO");
 
@@ -1925,7 +1918,6 @@ private int extractPointsCost(String rewardText) {
   }
     
     private void handlePaymentMethods(Customer customer) {
-    Scanner scanner = new Scanner(System.in);
     while (true) {
         clearScreen();
         System.out.println("┌─────────────────────────────────────────┐");
@@ -2021,8 +2013,8 @@ private int extractPointsCost(String rewardText) {
     }
     
     private void handleChangePassword() {
+    clearScreen();
     showLoadingMessage("Loading Password Change");
-    Scanner scanner = new Scanner(System.in);
     User currentUser = authManager.getCurrentUser();
 
     if (currentUser == null) {
@@ -2038,6 +2030,8 @@ private int extractPointsCost(String rewardText) {
         String choice = scanner.nextLine().trim();
 
         if ("2".equals(choice)) {
+            System.out.println("\n─── All Customers ───");
+            printAllCustomers();
             System.out.print("Enter username to reset password: ");
             String username = scanner.nextLine().trim();
             System.out.print("Enter new password: ");
@@ -2160,7 +2154,7 @@ private int extractPointsCost(String rewardText) {
             System.out.print("Enter E-Wallet phone number: ");
             String phone = scanner.nextLine().trim();
             System.out.print("Enter 6-digit PIN: ");
-            String pin = scanner.nextLine().trim(); // just simulate
+            String pin = scanner.nextLine().trim(); 
 
             if (!phone.matches("\\d{8,15}")) {
                 System.out.println("Invalid phone number. Expect digits (8-15).");
@@ -2230,22 +2224,5 @@ private record PaymentInput(String paymentMethod, String maskedCard, String eWal
         System.out.println("\n" + message);
     }
 
-    private LocalDate readDateInput(String prompt) {
-    while (true) {
-        System.out.print(prompt);
-        String input = scanner.nextLine().trim();
-
-        if (input.isEmpty()) {
-            System.out.println("Date cannot be empty. Please try again.");
-            continue;
-        }
-
-        try {
-            return LocalDate.parse(input); // expects yyyy-MM-dd
-        } catch (Exception e) {
-            System.out.println("Invalid date format. Please use yyyy-MM-dd.");
-        }
-    }
-}
 
 }

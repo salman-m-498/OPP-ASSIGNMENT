@@ -1,6 +1,11 @@
 package com.rentalapp;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+
+import com.rentalapp.vessel.Vessel;
 import com.rentalapp.vessel.VesselManager;
 import com.rentalapp.auth.AuthenticationManager;
 import com.rentalapp.auth.DashboardManager;
@@ -154,7 +159,20 @@ public class App {
         
         // Show a preview of available vehicles
         try {
-            vesselManager.displayVessels(vesselManager.getAvailableVessels());
+            List<Vessel> availableVessels = vesselManager.getAvailableVessels();
+            Map<String, List<Vessel>> grouped = availableVessels.stream()
+                .collect(Collectors.groupingBy(Vessel::getVesselCategory));
+
+        // For each category, take only 5 and display
+        for (String category : grouped.keySet()) {
+            System.out.println("\n=== " + category.toUpperCase() + " ===");
+            List<Vessel> limited = grouped.get(category).stream()
+                    .limit(5)
+                    .collect(Collectors.toList());
+
+            vesselManager.displayVessels(limited);
+        }
+
         } catch (Exception e) {
             System.out.println("Vessel browsing functionality will be fully available after login.");
         }

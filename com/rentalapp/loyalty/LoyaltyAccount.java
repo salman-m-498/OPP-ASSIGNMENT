@@ -47,31 +47,19 @@ public class LoyaltyAccount {
         this.totalRentals++;
     }
 
-    public boolean canUpgradeToVip() {
-        return !vipMember && (currentPoints >= 500 || totalRentals >= 5);
-    }
+  public boolean canUpgradeToVip() {
+    return !vipMember && (currentPoints >= LoyaltyPointManager.getVipThresholdPoints() || totalRentals >= LoyaltyPointManager.getVipThresholdRentals());
+}
 
     public int getPointsToVip() {
-        if (vipMember) {
-            return 0; // Already VIP
-        } else if (totalRentals >= 5) {
-            return 0; // Qualified through rental count
-        } else if (currentPoints < 3000) {
-            return 3000 - currentPoints;
-        }
-        return 0;
-    }
+    if (vipMember) return 0;
+    return Math.max(0, LoyaltyPointManager.getVipThresholdPoints() - currentPoints);
+}
 
-     public int getRentalsToVip() {
-        if (vipMember) {
-            return 0; // Already VIP
-        } else if (currentPoints >= 3000) {
-            return 0; // Qualified through points
-        } else if (totalRentals < 5) {
-            return 5 - totalRentals;
-        }
-        return 0;
-    }
+public int getRentalsToVip() {
+    if (vipMember) return 0;
+    return Math.max(0, LoyaltyPointManager.getVipThresholdRentals()- totalRentals);
+}
 
 
      public void printAccountSummary() {

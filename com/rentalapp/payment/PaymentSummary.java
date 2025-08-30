@@ -47,7 +47,7 @@ public class PaymentSummary {
         updatePreferredPaymentMethod();
     }
 
-    // Update average rental cost (avoid division by zero)
+    // Update average rental cost 
     this.averageRentalCost = totalRentals > 0 ? totalSpent / totalRentals : 0;
     }
 

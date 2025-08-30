@@ -9,9 +9,9 @@ public class RentalRequest {
     private String customerId;
     private String vesselId;
     private String pickupLocation;
-    private LocalDateTime scheduledStart;   // When rental starts
-    private LocalDateTime scheduledEnd;     // When rental should end
-    private Duration duration;              // Duration (hours/minutes)
+    private LocalDateTime scheduledStart;   
+    private LocalDateTime scheduledEnd;     
+    private Duration duration;              
     private List<AddOn> addOns; 
     private double totalCost; 
 
@@ -28,7 +28,7 @@ public class RentalRequest {
         this.totalCost = 0.0; 
     }
 
-    // Alternative constructor (duration can be calculated later)
+    // Alternative constructor
     public RentalRequest(String customerId, String vesselId, String pickupLocation,
                          LocalDateTime scheduledStart, LocalDateTime scheduledEnd) {
         this.customerId = customerId;
