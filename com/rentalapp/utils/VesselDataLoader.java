@@ -5,19 +5,45 @@ import java.time.Duration;
 import java.util.*;
 
 public class VesselDataLoader {
-    private static final String YACHTS_FILE = "com/rentalapp/data/Yachts.csv";
-    private static final String BOATS_FILE = "com/rentalapp/data/Boats.csv";
-    private static final String PONTOONS_FILE = "com/rentalapp/data/Pontoons.csv";
-    private static final String JETSKIS_FILE = "com/rentalapp/data/JetSkis.csv";
-    private static final String FISHING_CHARTERS_FILE = "com/rentalapp/data/FishingCharters.csv";
+        private static final String[] VESSEL_FILES = {
+        "com/rentalapp/data/Yachts.csv",
+        "com/rentalapp/data/Boats.csv",
+        "com/rentalapp/data/Pontoons.csv",
+        "com/rentalapp/data/JetSkis.csv",
+        "com/rentalapp/data/FishingCharters.csv"
+    };
 
     public static List<Vessel> loadAllVessels() {
+         List<Vessel> vessels = new ArrayList<>();
+        for (String file : VESSEL_FILES) {
+            vessels.addAll(loadVesselsFromCSV(file));
+        }
+        return vessels;
+    }
+
+    private static List<Vessel> loadVesselsFromCSV(String filePath) {
         List<Vessel> vessels = new ArrayList<>();
-        vessels.addAll(loadYachts());
-        vessels.addAll(loadBoats());
-        vessels.addAll(loadPontoons());
-        vessels.addAll(loadJetSkis());
-        vessels.addAll(loadFishingCharters());
+        List<String[]> data = FileReader.readCSV(filePath);
+
+        for (String[] row : data) {
+            try {
+                String id = row[0];
+                String category = row[1];
+                String vesselType = row[2];
+                String location = row[3];
+                String purpose = row[4];
+                int capacity = Integer.parseInt(row[5]);
+                Duration duration = parseDuration(row[6]);
+                double basePrice = Double.parseDouble(row[7]);
+                boolean available = Boolean.parseBoolean(row[8]);
+
+                Vessel vessel = new Vessel(id, category, vesselType, location, purpose,
+                                           capacity, duration, basePrice, available);
+                vessels.add(vessel);
+            } catch (Exception e) {
+                System.err.println("Error parsing vessel data from " + filePath + ": " + e.getMessage());
+            }
+        }
         return vessels;
     }
 
@@ -35,134 +61,5 @@ public class VesselDataLoader {
     }
 }
 
-    
-    public static List<Yacht> loadYachts() {
-        List<Yacht> yachts = new ArrayList<>();
-        List<String[]> data = FileReader.readCSV(YACHTS_FILE);
 
-        for (String[] row : data) {
-            try {
-                String id = row[0];
-                String category = row[1];
-                String vesselType = row[2];
-                String location = row[3];
-                String purpose = row[4];
-                int capacity = Integer.parseInt(row[5]);
-                Duration duration = parseDuration(row[6]);
-                double basePrice = Double.parseDouble(row[7]);
-                boolean available = Boolean.parseBoolean(row[8]);
-                
-                Yacht yacht = new Yacht(id, category, vesselType, location, purpose, 
-                                       capacity, duration, basePrice, available);
-                yachts.add(yacht);
-            } catch (Exception e) {
-                System.err.println("Error parsing yacht data: " + e.getMessage());
-            }
-        }
-        return yachts;
-    }
-    
-    public static List<Boat> loadBoats() {
-        List<Boat> boats = new ArrayList<>();
-        List<String[]> data = FileReader.readCSV(BOATS_FILE);
-        
-        for (String[] row : data) {
-            try {
-                String id = row[0];
-                String category = row[1];
-                String vesselType = row[2];
-                String location = row[3];
-                String purpose = row[4];
-                int capacity = Integer.parseInt(row[5]);
-                Duration duration = parseDuration(row[6]);
-                double basePrice = Double.parseDouble(row[7]);
-                boolean available = Boolean.parseBoolean(row[8]);
-                
-                Boat boat = new Boat(id, category, vesselType, location, purpose, 
-                                    capacity, duration, basePrice, available);
-                boats.add(boat);
-            } catch (Exception e) {
-                System.err.println("Error parsing boat data: " + e.getMessage());
-            }
-        }
-        return boats;
-    }
-    
-    public static List<Pontoon> loadPontoons() {
-        List<Pontoon> pontoons = new ArrayList<>();
-        List<String[]> data = FileReader.readCSV(PONTOONS_FILE);
-        
-        for (String[] row : data) {
-            try {
-                String id = row[0];
-                String category = row[1];
-                String vesselType = row[2];
-                String location = row[3];
-                String purpose = row[4];
-                int capacity = Integer.parseInt(row[5]);
-                Duration duration = parseDuration(row[6]);
-                double basePrice = Double.parseDouble(row[7]);
-                boolean available = Boolean.parseBoolean(row[8]);
-                
-                Pontoon pontoon = new Pontoon(id, category, vesselType, location, purpose, 
-                                             capacity, duration, basePrice, available);
-                pontoons.add(pontoon);
-            } catch (Exception e) {
-                System.err.println("Error parsing pontoon data: " + e.getMessage());
-            }
-        }
-        return pontoons;
-    }
-    
-    public static List<JetSki> loadJetSkis() {
-        List<JetSki> jetSkis = new ArrayList<>();
-        List<String[]> data = FileReader.readCSV(JETSKIS_FILE);
-        
-        for (String[] row : data) {
-            try {
-                String id = row[0];
-                String category = row[1];
-                String vesselType = row[2];
-                String location = row[3];
-                String purpose = row[4];
-                int capacity = Integer.parseInt(row[5]);
-                Duration duration = parseDuration(row[6]);
-                double basePrice = Double.parseDouble(row[7]);
-                boolean available = Boolean.parseBoolean(row[8]);
-                
-                JetSki jetSki = new JetSki(id, category, vesselType, location, purpose, 
-                                          capacity, duration, basePrice, available);
-                jetSkis.add(jetSki);
-            } catch (Exception e) {
-                System.err.println("Error parsing jet ski data: " + e.getMessage());
-            }
-        }
-        return jetSkis;
-    }
-    
-    public static List<FishingCharter> loadFishingCharters() {
-        List<FishingCharter> fishingCharters = new ArrayList<>();
-        List<String[]> data = FileReader.readCSV(FISHING_CHARTERS_FILE);
-        
-        for (String[] row : data) {
-            try {
-                String id = row[0];
-                String category = row[1];
-                String vesselType = row[2];
-                String location = row[3];
-                String purpose = row[4];
-                int capacity = Integer.parseInt(row[5]);
-                Duration duration = parseDuration(row[6]);
-                double basePrice = Double.parseDouble(row[7]);
-                boolean available = Boolean.parseBoolean(row[8]);
-                
-                FishingCharter charter = new FishingCharter(id, category, vesselType, location, purpose, 
-                                                           capacity, duration, basePrice, available);
-                fishingCharters.add(charter);
-            } catch (Exception e) {
-                System.err.println("Error parsing fishing charter data: " + e.getMessage());
-            }
-        }
-        return fishingCharters;
-    }
 }

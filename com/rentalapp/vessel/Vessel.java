@@ -2,17 +2,17 @@ package com.rentalapp.vessel;
 
 import java.time.Duration;
 
-public abstract class Vessel {
-    protected String id;
-    protected String category;
-    protected String vesselType;  
-    protected String location;
-    protected String purpose;
-    protected int capacity;
-    protected Duration duration;    
-    protected double basePrice;
-    protected boolean available;
-    protected int rentalCount = 0;
+public class Vessel {
+    private String id;
+    private String category;
+    private String vesselType;  
+    private String location;
+    private String purpose;
+    private int capacity;
+    private Duration duration;    
+    private double basePrice;
+    private boolean available;
+    private int rentalCount = 0;
 
     public Vessel(String id, String category, String vesselType, String location, String purpose, int capacity, Duration duration, double basePrice, boolean available) {
         this.id = id;
@@ -62,5 +62,4 @@ public abstract class Vessel {
                 id, vesselType, location, capacity, basePrice,hours, minutes, purpose, available ? "Available" : "Rented");
     }
 
-    public abstract String getVesselDetails();
 }

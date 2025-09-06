@@ -80,22 +80,21 @@ public class VesselManager {
     
     
 /**
-     * Add a new vessel to the system
-     */
-    public boolean addVessel(String category, String id, String vesselType, String location,
-                            String purpose, int capacity, Duration duration, double basePrice, boolean available) {
-        try {
-            Vessel newVessel = createVesselByCategory(category, id, vesselType, location, 
-                                                    purpose, capacity, duration, basePrice, available);
-            if (newVessel != null) {
-                vessels.add(newVessel);
-                return true;
-            }
-        } catch (Exception e) {
-            System.err.println("Error adding vessel: " + e.getMessage());
-        }
+ * Add a new vessel to the system
+ */
+public boolean addVessel(String category, String id, String vesselType, String location,
+                         String purpose, int capacity, Duration duration, double basePrice, boolean available) {
+    try {
+        // Directly create a Vessel instance
+        Vessel newVessel = new Vessel(id, category, vesselType, location, purpose,
+                                      capacity, duration, basePrice, available);
+        vessels.add(newVessel);
+        return true;
+    } catch (Exception e) {
+        System.err.println("Error adding vessel: " + e.getMessage());
         return false;
     }
+}
     
     /**
      * Update a specific field of a vessel
@@ -146,26 +145,6 @@ public class VesselManager {
         return false;
     }
     
-    /**
-     * Create vessel instance based on category
-     */
-    private Vessel createVesselByCategory(String category, String id, String vesselType, String location,
-                                        String purpose, int capacity, Duration duration, double basePrice, boolean available) {
-        switch (category) {
-            case "Yacht":
-                return new Yacht(id, category, vesselType, location, purpose, capacity, duration, basePrice, available);
-            case "Boat":
-                return new Boat(id, category, vesselType, location, purpose, capacity, duration, basePrice, available);
-            case "Pontoon":
-                return new Pontoon(id, category, vesselType, location, purpose, capacity, duration, basePrice, available);
-            case "Jet Ski":
-                return new JetSki(id, category, vesselType, location, purpose, capacity, duration, basePrice, available);
-            case "Fishing Charter":
-                return new FishingCharter(id, category, vesselType, location, purpose, capacity, duration, basePrice, available);
-            default:
-                return null;
-        }
-    }
     
     /**
      * Get vessel count by category
