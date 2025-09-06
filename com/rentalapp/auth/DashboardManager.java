@@ -1748,6 +1748,10 @@ private int extractPointsCost(String rewardText) {
         showInfo("Your Membership ID: " + membershipId);
         showInfo("As a welcome gift, you have received 100 loyalty points!");
         loyaltyPointManager.addPoints(newMember.getCustomerId(), 100);
+
+        pauseForUser();
+        showDashboard(newMember);  
+    return;  
     } else {
         showError("You are not eligible for membership upgrade at this time.");
     }
