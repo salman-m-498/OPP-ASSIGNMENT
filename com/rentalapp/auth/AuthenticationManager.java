@@ -53,9 +53,6 @@ public class AuthenticationManager {
         printHeader("USER REGISTRATION");
         
         try {
-            // Get user type
-            String userType = getUserType();
-            if (userType == null) return false;
             
             // Get basic information
             String username = getValidUsername();
@@ -76,17 +73,20 @@ public class AuthenticationManager {
             // Hash password
             String hashedPassword = hashPassword(password);
             
-            User newUser = null;
-            
-            if ("ADMIN".equals(userType)) {
-                newUser = createAdminUser(username, hashedPassword, name, email, phone);
-            } else {
-                newUser = createCustomerUser(username, hashedPassword, name, email, phone, userType);
-            }
-            
-            if (newUser != null) {
-                users.put(username, newUser);
-                saveUsers();
+            String customerId = generateCustomerId();
+            System.out.print("Enter address: ");
+            String address = scanner.nextLine().trim();
+
+            String icNumber = getValidICNumber();
+            if (icNumber == null) return false;
+
+            User newUser = new NonMemberCustomer(
+            username, hashedPassword, name, email, phone,
+            customerId, address, icNumber
+            );
+
+            users.put(username, newUser);
+            saveUsers();
                 
                 showLoadingBar("Creating account");
                 System.out.println("\nAccount created successfully!");
@@ -95,7 +95,7 @@ public class AuthenticationManager {
                 
                 pauseForUser();
                 return true;
-            }
+        
             
         } catch (Exception e) {
             System.out.println("Error during registration: " + e.getMessage());
@@ -162,74 +162,6 @@ public class AuthenticationManager {
             System.out.println("Goodbye, " + currentUser.getName() + "!");
             currentUser = null;
         }
-    }
-    
-    /**
-     * Get user type for registration
-     */
-    private String getUserType() {
-        while (true) {
-            System.out.println("\nSelect User Type:");
-            System.out.println("1. Customer (Non-Member)");
-            System.out.println("2. Customer (Member)");
-            System.out.println("3. Admin");
-            System.out.println("4. Back to Main Menu");
-            System.out.print("Choose option (1-4): ");
-            
-            String choice = scanner.nextLine().trim();
-            
-            switch (choice) {
-                case "1":
-                    return "NON_MEMBER";
-                case "2":
-                    return "MEMBER";
-                case "3":
-                    return "ADMIN";
-                case "4":
-                    return null;
-                default:
-                    System.out.println("Invalid choice! Please try again.");
-            }
-        }
-    }
-    
-    /**
-     * Create admin user with additional details
-     */
-    private Admin createAdminUser(String username, String hashedPassword, String name, String email, String phone) {
-        System.out.print("Enter Admin ID: ");
-        String adminId = scanner.nextLine().trim();
-        
-        System.out.print("Enter Department: ");
-        String department = scanner.nextLine().trim();
-        
-        return new Admin(username, hashedPassword, name, email, phone, adminId, department);
-    }
-    
-    /**
-     * Create customer user with additional details
-     */
-    private Customer createCustomerUser(String username, String hashedPassword, String name, String email, String phone, String type) {
-        String customerId = generateCustomerId();
-        
-        System.out.print("Enter address: ");
-        String address = scanner.nextLine().trim();
-        
-        String icNumber = getValidICNumber();
-        if (icNumber == null) return null;
-
-        if ("MEMBER".equals(type)) {
-        String membershipId = generateMembershipId();
-        return new MemberCustomer(
-            username, hashedPassword, name, email, phone,
-            customerId, address, icNumber, membershipId, "Standard" // ✅ Added membershipTier
-        );
-       } else {
-        return new NonMemberCustomer(
-            username, hashedPassword, name, email, phone,
-            customerId, address, icNumber
-        );
-       }
     }
     
     /**
